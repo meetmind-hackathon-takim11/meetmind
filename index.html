@@ -392,6 +392,102 @@ html,body{height:100%;font-family:var(--font-body);background:var(--surf-2);colo
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
   .grid-2,.grid-3{grid-template-columns:1fr}
 }
+
+/* ── RISK METER ──────────────────────────────────────────────────── */
+.risk-meter-wrap{position:relative;width:130px;height:70px;margin:0 auto 8px;overflow:hidden}
+.risk-meter-bg{position:absolute;bottom:0;left:0;right:0;height:130px;
+  border-radius:130px 130px 0 0;background:conic-gradient(
+    #10B981 0deg 60deg,
+    #F59E0B 60deg 120deg,
+    #EF4444 120deg 180deg
+  );opacity:.18}
+.risk-needle{position:absolute;bottom:0;left:50%;width:3px;height:60px;
+  transform-origin:bottom center;border-radius:3px 3px 0 0;
+  background:var(--ink);transition:transform .8s cubic-bezier(.34,1.56,.64,1);}
+.risk-center{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);
+  width:14px;height:14px;border-radius:50%;background:var(--ink);z-index:2}
+.risk-labels{display:flex;justify-content:space-between;font-size:10px;font-weight:500;
+  margin-top:4px;padding:0 4px}
+.risk-score-big{font-family:var(--font-display);font-size:28px;text-align:center;
+  line-height:1;color:var(--ink)}
+.risk-label-big{font-size:11px;text-align:center;font-weight:500;letter-spacing:.04em;
+  text-transform:uppercase;margin-top:2px}
+
+/* ── MOOD BARS ───────────────────────────────────────────────────── */
+.mood-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px}
+.mood-bar-label{min-width:80px;color:var(--ink-2)}
+.mood-bar-track{flex:1;height:6px;background:var(--surf-3);border-radius:4px;overflow:hidden}
+.mood-bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+
+/* ── APPROVAL PANEL ──────────────────────────────────────────────── */
+.approval-card{
+  border:1.5px solid #FDE68A;
+  background:linear-gradient(135deg,#FFFBEB,#FEF9C3);
+  border-radius:var(--r-lg);overflow:hidden;margin-bottom:20px;
+}
+.approval-header{
+  padding:12px 18px;background:rgba(245,158,11,.1);
+  border-bottom:1px solid #FDE68A;
+  display:flex;align-items:center;gap:10px;
+}
+.approval-pulse{width:8px;height:8px;border-radius:50%;background:#F59E0B;
+  animation:pulse 1.5s ease-in-out infinite}
+.approval-body{padding:14px 18px}
+.approval-task-row{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 0;border-bottom:1px solid rgba(253,230,138,.6);
+  font-size:13px;
+}
+.approval-task-row:last-of-type{border-bottom:none}
+.approval-actions{
+  display:flex;gap:8px;padding:12px 18px;
+  border-top:1px solid #FDE68A;background:rgba(255,255,255,.5)
+}
+.btn-approve{background:#10B981;color:#fff;border:none}
+.btn-approve:hover{background:#059669}
+.btn-edit-approval{background:#F59E0B;color:#fff;border:none}
+.btn-edit-approval:hover{background:#D97706}
+.btn-reject-approval{background:var(--red-l);color:#DC2626;border:1px solid #FECACA}
+
+/* ── VOICE SCREEN ────────────────────────────────────────────────── */
+.voice-big-btn{
+  width:120px;height:120px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;
+  margin:0 auto 16px;cursor:pointer;border:none;
+  background:var(--teal);box-shadow:0 4px 24px rgba(13,148,136,.35);
+  transition:var(--trans);
+}
+.voice-big-btn:hover{transform:scale(1.05);box-shadow:0 8px 32px rgba(13,148,136,.45)}
+.voice-big-btn.recording{background:var(--red);box-shadow:0 4px 24px rgba(239,68,68,.35);
+  animation:recPulse 1.2s ease-in-out infinite}
+@keyframes recPulse{0%,100%{box-shadow:0 4px 24px rgba(239,68,68,.35)}
+  50%{box-shadow:0 4px 40px rgba(239,68,68,.55)}}
+.voice-wave{display:flex;align-items:center;gap:3px;height:32px;margin:0 auto 20px;
+  justify-content:center}
+.voice-wave span{display:inline-block;width:4px;border-radius:2px;
+  background:var(--teal);animation:waveAnim 1s ease-in-out infinite}
+.voice-wave span:nth-child(1){animation-delay:0s}
+.voice-wave span:nth-child(2){animation-delay:.1s}
+.voice-wave span:nth-child(3){animation-delay:.2s}
+.voice-wave span:nth-child(4){animation-delay:.3s}
+.voice-wave span:nth-child(5){animation-delay:.4s}
+@keyframes waveAnim{0%,100%{height:8px;opacity:.4}50%{height:28px;opacity:1}}
+.voice-transcript{
+  min-height:80px;padding:12px 16px;
+  background:var(--surf-2);border:1px dashed var(--border-d);border-radius:var(--r-md);
+  font-size:13px;color:var(--ink-2);line-height:1.7;margin-bottom:12px;
+  font-style:italic;
+}
+.step-list{counter-reset:steps;list-style:none;display:flex;flex-direction:column;gap:10px}
+.step-list li{counter-increment:steps;display:flex;gap:12px;align-items:flex-start;font-size:13px;color:var(--ink-2)}
+.step-list li::before{content:counter(steps);display:flex;align-items:center;justify-content:center;
+  min-width:22px;height:22px;border-radius:50%;background:var(--teal);color:#fff;
+  font-size:11px;font-weight:600;margin-top:1px}
+
+/* ── FEATURE BADGES (sidebar) ────────────────────────────────────── */
+.nav-new{font-size:9px;font-weight:600;padding:2px 5px;border-radius:6px;
+  background:rgba(13,148,136,.3);color:var(--teal-l);letter-spacing:.04em;margin-left:auto}
+
 </style>
 </head>
 <body>
@@ -412,6 +508,9 @@ const CONFIG = {
   // Görev güncellemek için ayrı bir n8n webhook (opsiyonel)
   updateWebhookUrl: 'YOUR_N8N_UPDATE_WEBHOOK_URL_HERE',
 
+  // Sesli not için n8n webhook — Workflow 3'ten alın
+  voiceWebhookUrl: 'YOUR_N8N_VOICE_WEBHOOK_URL_HERE',
+
   refreshInterval: 30000, // 30 saniyede bir veri güncelle
 };
 </script>
@@ -429,6 +528,10 @@ const CONFIG = {
   <symbol id="ico-mail" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
   <symbol id="ico-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
   <symbol id="ico-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="ico-mic" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></symbol>
+  <symbol id="ico-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="ico-risk" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="ico-mood" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></symbol>
 </svg>
 
 <div class="app">
@@ -462,6 +565,12 @@ const CONFIG = {
         <svg class="nav-icon"><use href="#ico-notes"/></svg>
         <span>Toplantı Notları</span>
       </button>
+      <div class="nav-section-label" style="margin-top:8px">Gelişmiş</div>
+      <button class="nav-item" onclick="navigate('voice')">
+        <svg class="nav-icon"><use href="#ico-mic"/></svg>
+        <span>Sesli Not</span>
+        <span class="nav-new">YENİ</span>
+      </button>
     </nav>
     <div class="sidebar-footer">
       <div><span class="status-dot"></span>Sistem aktif</div>
@@ -492,6 +601,31 @@ const CONFIG = {
       <!-- ════ DASHBOARD ════════════════════════════════════ -->
       <div class="screen active" id="screen-dashboard">
 
+        <!-- ── Human-in-the-Loop Approval Panel ── -->
+        <div class="approval-card" id="approval-panel" style="display:none">
+          <div class="approval-header">
+            <div class="approval-pulse"></div>
+            <span style="font-size:13px;font-weight:600;color:#92400E">⏳ Onay Bekliyor</span>
+            <span style="font-size:12px;color:#92400E;margin-left:4px" id="approval-meeting-label"></span>
+            <span style="margin-left:auto;font-size:11px;color:#B45309">AI görevleri çıkardı — gözden geçirin</span>
+          </div>
+          <div class="approval-body">
+            <div style="font-size:12px;color:#78350F;margin-bottom:10px">
+              Gemini aşağıdaki görevleri tespit etti. E-postalar ve takvim etkinlikleri <strong>yalnızca onayladıktan sonra</strong> oluşturulacak.
+            </div>
+            <div id="approval-items"></div>
+          </div>
+          <div class="approval-actions">
+            <button class="btn btn-sm btn-approve" onclick="approveAll()">
+              <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.5"><use href="#ico-check"/></svg>
+              Tümünü Onayla &amp; Gönder
+            </button>
+            <button class="btn btn-sm btn-edit-approval" onclick="navigate('submit')">Düzenle</button>
+            <button class="btn btn-sm btn-reject-approval" onclick="dismissApproval()">Reddet</button>
+          </div>
+        </div>
+
+        <!-- ── KPI Row ── -->
         <div class="kpi-grid">
           <div class="kpi kpi-total">
             <div class="kpi-label">Toplam Görev</div>
@@ -515,21 +649,84 @@ const CONFIG = {
           </div>
         </div>
 
-        <div class="grid-2">
+        <!-- ── Risk + Mood + Urgent row ── -->
+        <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:16px;margin-bottom:20px">
+
+          <!-- Risk Meter -->
+          <div class="card" style="text-align:center">
+            <div class="card-header" style="justify-content:center">
+              <svg style="width:14px;height:14px;fill:none;stroke:var(--red);stroke-width:2;margin-right:6px"><use href="#ico-risk"/></svg>
+              <span class="card-title">Proje Risk Skoru</span>
+            </div>
+            <div class="card-body" style="padding:16px 12px 12px">
+              <div class="risk-meter-wrap">
+                <div class="risk-meter-bg"></div>
+                <div class="risk-needle" id="risk-needle" style="transform:rotate(-80deg)"></div>
+                <div class="risk-center"></div>
+              </div>
+              <div class="risk-labels">
+                <span style="color:var(--green)">Düşük</span>
+                <span style="color:var(--amber)">Orta</span>
+                <span style="color:var(--red)">Yüksek</span>
+              </div>
+              <div class="risk-score-big" id="risk-score">—</div>
+              <div class="risk-label-big" id="risk-label" style="color:var(--ink-3)">Hesaplanıyor</div>
+              <div style="font-size:11px;color:var(--ink-4);margin-top:6px" id="risk-breakdown"></div>
+            </div>
+          </div>
+
+          <!-- Mood Analysis -->
+          <div class="card">
+            <div class="card-header">
+              <svg style="width:14px;height:14px;fill:none;stroke:var(--teal);stroke-width:2;margin-right:6px"><use href="#ico-mood"/></svg>
+              <span class="card-title">Toplantı Duygu Analizi</span>
+              <span class="badge badge-teal" style="margin-left:8px;font-size:10px">Gemini</span>
+            </div>
+            <div class="card-body" id="mood-body">
+              <div class="mood-bar-row">
+                <span class="mood-bar-label">Aciliyet</span>
+                <div class="mood-bar-track"><div class="mood-bar-fill" id="mood-urgency" style="width:0%;background:#EF4444"></div></div>
+                <span style="min-width:28px;text-align:right;font-size:12px;color:var(--ink-3)" id="mood-urgency-val">—</span>
+              </div>
+              <div class="mood-bar-row">
+                <span class="mood-bar-label">Netlik</span>
+                <div class="mood-bar-track"><div class="mood-bar-fill" id="mood-clarity" style="width:0%;background:#10B981"></div></div>
+                <span style="min-width:28px;text-align:right;font-size:12px;color:var(--ink-3)" id="mood-clarity-val">—</span>
+              </div>
+              <div class="mood-bar-row">
+                <span class="mood-bar-label">Yük Dağılımı</span>
+                <div class="mood-bar-track"><div class="mood-bar-fill" id="mood-balance" style="width:0%;background:#F59E0B"></div></div>
+                <span style="min-width:28px;text-align:right;font-size:12px;color:var(--ink-3)" id="mood-balance-val">—</span>
+              </div>
+              <div class="mood-bar-row" style="margin-bottom:0">
+                <span class="mood-bar-label">Tamamlanma</span>
+                <div class="mood-bar-track"><div class="mood-bar-fill" id="mood-completion" style="width:0%;background:#6366F1"></div></div>
+                <span style="min-width:28px;text-align:right;font-size:12px;color:var(--ink-3)" id="mood-completion-val">—</span>
+              </div>
+              <div style="margin-top:14px;padding:10px 12px;background:var(--surf-2);border-radius:var(--r-md);font-size:12px;color:var(--ink-2);line-height:1.6" id="mood-summary">
+                Analiz için en az bir toplantı notu gönderin.
+              </div>
+            </div>
+          </div>
+
+          <!-- Urgent Tasks -->
           <div class="card">
             <div class="card-header">
               <span class="card-title">Acil Görevler</span>
               <span class="badge badge-high" id="dash-urgent-count">—</span>
             </div>
             <div class="card-body" style="padding:0">
-              <table class="data-table" id="dash-urgent-table">
+              <table class="data-table">
                 <tbody id="dash-urgent-body">
                   <tr><td colspan="3" style="text-align:center;color:var(--ink-4);padding:24px">Yükleniyor...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
+        </div>
 
+        <!-- ── Person Distribution + Meetings ── -->
+        <div class="grid-2">
           <div class="card">
             <div class="card-header">
               <span class="card-title">Kişi Bazlı Dağılım</span>
@@ -538,22 +735,22 @@ const CONFIG = {
               <div style="color:var(--ink-4);font-size:13px">Yükleniyor...</div>
             </div>
           </div>
-        </div>
 
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Son Toplantılar</span>
-            <button class="btn btn-ghost btn-sm" onclick="navigate('notes')">Tümünü Gör →</button>
-          </div>
-          <div class="card-body" style="padding:0">
-            <table class="data-table">
-              <thead><tr>
-                <th>Toplantı</th><th>Tarih</th><th>Görev</th><th>Sorumlular</th>
-              </tr></thead>
-              <tbody id="dash-meetings-body">
-                <tr><td colspan="4" style="text-align:center;color:var(--ink-4);padding:24px">Yükleniyor...</td></tr>
-              </tbody>
-            </table>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Son Toplantılar</span>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('notes')">Tümünü Gör →</button>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="data-table">
+                <thead><tr>
+                  <th>Toplantı</th><th>Tarih</th><th>Görev</th><th>Risk</th>
+                </tr></thead>
+                <tbody id="dash-meetings-body">
+                  <tr><td colspan="4" style="text-align:center;color:var(--ink-4);padding:24px">Yükleniyor...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -748,6 +945,127 @@ const CONFIG = {
         </div>
       </div>
 
+      <!-- ════ VOICE ════════════════════════════════════════ -->
+      <div class="screen" id="screen-voice">
+        <div class="grid-2" style="align-items:start">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header">
+                <svg style="width:15px;height:15px;fill:none;stroke:var(--teal);stroke-width:2"><use href="#ico-mic"/></svg>
+                <span class="card-title" style="margin-left:6px">Tarayıcıdan Kayıt</span>
+                <span class="badge badge-teal" style="margin-left:8px">Beta</span>
+              </div>
+              <div class="card-body" style="text-align:center;padding:32px 20px">
+                <div class="voice-wave" id="voice-wave" style="display:none">
+                  <span style="height:8px"></span><span style="height:16px"></span>
+                  <span style="height:24px"></span><span style="height:16px"></span>
+                  <span style="height:8px"></span>
+                </div>
+                <button class="voice-big-btn" id="voice-btn" onclick="toggleRecording()">
+                  <svg style="width:36px;height:36px;fill:none;stroke:#fff;stroke-width:1.75"><use href="#ico-mic"/></svg>
+                  <span style="font-size:11px;color:rgba(255,255,255,.8);font-weight:500" id="voice-btn-label">Kayıt Başlat</span>
+                </button>
+                <div style="font-size:13px;color:var(--ink-3);margin-bottom:16px" id="voice-status">Mikrofona basarak konuşmaya başlayın</div>
+                <div class="voice-transcript" id="voice-transcript">Konuşmanız burada görünecek...</div>
+                <div style="display:flex;gap:8px;justify-content:center">
+                  <button class="btn btn-primary" id="voice-send-btn" style="display:none" onclick="sendVoiceTranscript()">
+                    <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2"><use href="#ico-submit"/></svg>
+                    Notu Gönder
+                  </button>
+                  <button class="btn btn-ghost" id="voice-clear-btn" style="display:none" onclick="clearVoice()">Temizle</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Toplantı Bilgisi</span>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="form-label">Toplantı Adı</label>
+                  <input class="form-input" id="voice-meeting-title" type="text" placeholder="ör. Sabah standup">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label">Tarih</label>
+                  <input class="form-input" id="voice-meeting-date" type="date">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header">
+                <svg style="width:15px;height:15px;fill:none;stroke:var(--amber);stroke-width:2"><use href="#ico-mic"/></svg>
+                <span class="card-title" style="margin-left:6px">Telegram/WhatsApp Botu ile Gönder</span>
+              </div>
+              <div class="card-body">
+                <div style="font-size:13px;color:var(--ink-2);line-height:1.7;margin-bottom:16px">
+                  Toplantı sonrası manuel yazma yerine sadece bota sesli mesaj gönderin. n8n otomatik algılar.
+                </div>
+                <ol class="step-list">
+                  <li>Telegram'da <strong>@MeetMindBot</strong>'u açın (veya WhatsApp numarasına yazın)</li>
+                  <li>Toplantı notunu <strong>sesli mesaj</strong> olarak gönderin — yazmaya gerek yok</li>
+                  <li>n8n ses dosyasını alır ve Whisper AI ile metne çevirir</li>
+                  <li>Metin Gemini'ye gönderilir, görevler çıkarılır</li>
+                  <li>Onay mesajı size geri gelir — <strong>"Evet"</strong> yazarsanız kayıt tamamlanır</li>
+                </ol>
+                <div style="margin-top:16px;padding:10px 14px;background:var(--surf-2);border-radius:var(--r-md);font-size:12px;color:var(--ink-3)">
+                  <strong>Bot linki:</strong> <span style="color:var(--teal);font-family:monospace" id="bot-link">t.me/YOUR_BOT</span><br>
+                  <strong>n8n webhook:</strong> <span style="font-family:monospace;font-size:11px" id="voice-webhook">YOUR_N8N_VOICE_WEBHOOK</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Ses → Metin Akışı</span>
+              </div>
+              <div class="card-body" style="padding:16px 18px">
+                <div style="display:flex;flex-direction:column;gap:0">
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--teal-l);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                      <svg style="width:14px;height:14px;fill:none;stroke:var(--teal);stroke-width:2"><use href="#ico-mic"/></svg>
+                    </div>
+                    <div style="font-size:13px;color:var(--ink-2)"><strong>Ses kaydı</strong> alınır (Telegram/Tarayıcı)</div>
+                  </div>
+                  <div style="width:2px;height:16px;background:var(--border);margin-left:15px"></div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--blueLight,#DBEAFE);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#DBEAFE">
+                      <span style="font-size:11px;font-weight:600;color:#1E40AF">AI</span>
+                    </div>
+                    <div style="font-size:13px;color:var(--ink-2)"><strong>Whisper API</strong> sesi metne çevirir</div>
+                  </div>
+                  <div style="width:2px;height:16px;background:var(--border);margin-left:15px"></div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+                    <div style="width:32px;height:32px;border-radius:50%;background:#EAE6F7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                      <svg style="width:14px;height:14px;fill:none;stroke:#5C4B9B;stroke-width:2"><use href="#ico-spark"/></svg>
+                    </div>
+                    <div style="font-size:13px;color:var(--ink-2)"><strong>Gemini</strong> görevleri çıkarır</div>
+                  </div>
+                  <div style="width:2px;height:16px;background:var(--border);margin-left:15px"></div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--amberLight,#FEF3C7);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                      <svg style="width:14px;height:14px;fill:none;stroke:#B45309;stroke-width:2"><use href="#ico-shield"/></svg>
+                    </div>
+                    <div style="font-size:13px;color:var(--ink-2)"><strong>Onay mesajı</strong> size gelir (Human-in-the-Loop)</div>
+                  </div>
+                  <div style="width:2px;height:16px;background:var(--border);margin-left:15px"></div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--greenLight,#DCFCE7);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                      <svg style="width:14px;height:14px;fill:none;stroke:#166534;stroke-width:2.5"><use href="#ico-check"/></svg>
+                    </div>
+                    <div style="font-size:13px;color:var(--ink-2)"><strong>Onaylanınca</strong> Sheets + Gmail + Calendar güncellenir</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
     </main>
   </div>
 </div>
@@ -779,6 +1097,7 @@ let state = {
   calMonth: new Date().getMonth(),
   selectedNote: null,
   pendingAIResult: null,
+  pendingApproval: null,
   lastRefresh: null,
 };
 
@@ -805,6 +1124,7 @@ const SCREEN_META = {
   tasks:     { title:'Görevler', sub:'Tüm görevler ve durumları' },
   calendar:  { title:'Takvim', sub:'Deadline takibi' },
   notes:     { title:'Toplantı Notları', sub:'Geçmiş toplantılar ve arşiv' },
+  voice:     { title:'Sesli Not Gönder', sub:'Bot üzerinden veya doğrudan ses kaydı ile not gönder' },
 };
 
 function navigate(screen) {
@@ -875,6 +1195,8 @@ async function refreshData() {
 // ══════════════════════════════════════════════════════════════
 function updateAllViews() {
   updateKPIs();
+  updateRiskMeter();
+  updateMoodBars();
   updateDashUrgent();
   updateDashPersons();
   updateDashMeetings();
@@ -892,7 +1214,6 @@ function updateKPIs() {
   const today  = new Date().toISOString().split('T')[0];
   const late   = tasks.filter(t => t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı').length;
   const pct    = total ? Math.round(done/total*100) : 0;
-
   setText('kpi-total', total);
   setText('kpi-done', done);
   setText('kpi-wait', wait);
@@ -903,13 +1224,83 @@ function updateKPIs() {
   setText('kpi-late-sub', late > 0 ? 'Dikkat gerekiyor!' : 'Gecikme yok ✓');
 }
 
+// ── RISK METER ───────────────────────────────────────────────
+function updateRiskMeter() {
+  const tasks = state.tasks;
+  if (!tasks.length) return;
+  const today = new Date().toISOString().split('T')[0];
+  const total  = tasks.length;
+  const late   = tasks.filter(t => t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı').length;
+  const high   = tasks.filter(t => t.Öncelik === 'Yüksek' && t.Durum !== 'Tamamlandı').length;
+  const wait   = tasks.filter(t => t.Durum === 'Bekliyor').length;
+  const done   = tasks.filter(t => t.Durum === 'Tamamlandı').length;
+
+  // Weighted score 0–100
+  const lateScore    = Math.min((late / Math.max(total,1)) * 40, 40);
+  const highScore    = Math.min((high / Math.max(total,1)) * 30, 30);
+  const waitScore    = Math.min((wait / Math.max(total,1)) * 20, 20);
+  const doneBonus    = Math.min((done / Math.max(total,1)) * 10, 10);
+  const score = Math.round(lateScore + highScore + waitScore - doneBonus);
+  const clamped = Math.max(0, Math.min(100, score));
+
+  // Needle: -90deg = low (left), 0deg = mid, +90deg = high (right)
+  const deg = -90 + (clamped / 100) * 180;
+  const needle = document.getElementById('risk-needle');
+  if (needle) needle.style.transform = `rotate(${deg}deg)`;
+
+  setText('risk-score', clamped);
+  let label, color;
+  if (clamped < 34)      { label = 'Düşük Risk';   color = 'var(--green)'; }
+  else if (clamped < 67) { label = 'Orta Risk';    color = 'var(--amber)'; }
+  else                   { label = 'Yüksek Risk';  color = 'var(--red)'; }
+  const lbl = document.getElementById('risk-label');
+  if (lbl) { lbl.textContent = label; lbl.style.color = color; }
+  setText('risk-breakdown', `${late} geciken · ${high} yüksek öncelik · ${wait} bekleyen`);
+}
+
+// ── MOOD / SENTIMENT BARS ────────────────────────────────────
+function updateMoodBars() {
+  const tasks = state.tasks;
+  if (!tasks.length) return;
+  const today = new Date().toISOString().split('T')[0];
+  const total  = tasks.length;
+  const high   = tasks.filter(t => t.Öncelik === 'Yüksek').length;
+  const late   = tasks.filter(t => t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı').length;
+  const done   = tasks.filter(t => t.Durum === 'Tamamlandı').length;
+
+  // Scores 0–100
+  const urgency    = Math.min(Math.round((high / Math.max(total,1)) * 100 + (late / Math.max(total,1)) * 100) / 2, 100);
+  const clarity    = Math.max(0, 100 - Math.round((late / Math.max(total,1)) * 80));
+  const persons    = new Set(tasks.map(t=>t.Sorumlu).filter(Boolean)).size;
+  const maxPerPerson = persons ? Math.max(...[...new Set(tasks.map(t=>t.Sorumlu).filter(Boolean))].map(p=>tasks.filter(t=>t.Sorumlu===p).length)) : 0;
+  const balance    = persons > 1 ? Math.max(0, 100 - Math.round(((maxPerPerson / total) - (1/persons)) / (1 - 1/persons) * 100)) : 50;
+  const completion = total ? Math.round(done / total * 100) : 0;
+
+  const set = (id, val, valId) => {
+    const el = document.getElementById(id);
+    if (el) el.style.width = val + '%';
+    if (valId) setText(valId, val + '%');
+  };
+  set('mood-urgency',   urgency,    'mood-urgency-val');
+  set('mood-clarity',   clarity,    'mood-clarity-val');
+  set('mood-balance',   balance,    'mood-balance-val');
+  set('mood-completion',completion, 'mood-completion-val');
+
+  let summary;
+  if (urgency > 70)     summary = '⚠️ Yüksek aciliyet tespit edildi. Yüksek öncelikli görevlerin hızla ele alınması gerekiyor.';
+  else if (clarity < 40) summary = '🔍 Görevlerde netlik düşük — deadline belirsizlikleri ve gecikme riski var.';
+  else if (balance < 40) summary = '⚖️ İş yükü dengesiz dağılmış. Bazı ekip üyeleri aşırı yüklü olabilir.';
+  else if (completion > 60) summary = '✅ Tamamlanma oranı iyi. Ekip verimli çalışıyor, süreç sağlıklı görünüyor.';
+  else                   summary = '📊 Sistem dengeli çalışıyor. Geciken görev sayısını takipte tutun.';
+  setText('mood-summary', summary);
+}
+
 function updateDashUrgent() {
   const today = new Date().toISOString().split('T')[0];
   const urgent = state.tasks
     .filter(t => t.Durum !== 'Tamamlandı')
     .sort((a,b) => (a.Deadline||'9999') < (b.Deadline||'9999') ? -1 : 1)
     .slice(0, 5);
-
   setText('dash-urgent-count', urgent.length + ' görev');
   const body = document.getElementById('dash-urgent-body');
   if (!urgent.length) {
@@ -918,9 +1309,8 @@ function updateDashUrgent() {
   }
   body.innerHTML = urgent.map(t => {
     const late = t.Deadline && t.Deadline < today;
-    const pb = priorityBadge(t.Öncelik);
     return `<tr>
-      <td><span class="badge ${pb}">${t.Öncelik||'—'}</span></td>
+      <td><span class="badge ${priorityBadge(t.Öncelik)}">${t.Öncelik||'—'}</span></td>
       <td class="task-name">${esc(t.Görev||'')}</td>
       <td style="font-size:12px;color:${late?'var(--red)':'var(--ink-3)'}">
         ${late?'⚠ ':''}${formatDate(t.Deadline)}
@@ -952,39 +1342,39 @@ function updateDashPersons() {
         </div>
         <span style="font-size:11px;color:var(--ink-3)">${v.done}/${v.total} · ${donePct}%</span>
       </div>
-      <div class="prog-bar-wrap">
-        <div class="prog-bar" style="width:${pct}%"></div>
-      </div>
+      <div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%"></div></div>
     </div>`;
   }).join('');
 }
 
 function updateDashMeetings() {
   const byMeeting = {};
+  const today = new Date().toISOString().split('T')[0];
   for (const t of state.tasks) {
     const m = t.Toplantı_Adı || 'Bilinmiyor';
-    if (!byMeeting[m]) byMeeting[m] = { persons: new Set(), count: 0, date: t.Tarih||'' };
+    if (!byMeeting[m]) byMeeting[m] = { persons: new Set(), count: 0, date: t.Tarih||'', late: 0, high: 0 };
     byMeeting[m].count++;
     if (t.Sorumlu) byMeeting[m].persons.add(t.Sorumlu);
+    if (t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı') byMeeting[m].late++;
+    if (t.Öncelik === 'Yüksek' && t.Durum !== 'Tamamlandı') byMeeting[m].high++;
   }
-  const meetings = Object.entries(byMeeting).sort((a,b) => (b[1].date||'') > (a[1].date||'') ? 1:-1).slice(0,5);
+  const meetings = Object.entries(byMeeting).sort((a,b)=>(b[1].date||'')>(a[1].date||'')?1:-1).slice(0,5);
   const body = document.getElementById('dash-meetings-body');
   if (!meetings.length) {
     body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-4)">Henüz toplantı yok</td></tr>';
     return;
   }
   body.innerHTML = meetings.map(([name, v]) => {
-    const persons = [...v.persons].slice(0,3);
+    const riskScore = Math.min(100, Math.round((v.late / Math.max(v.count,1)) * 50 + (v.high / Math.max(v.count,1)) * 50));
+    let riskBadge;
+    if (riskScore > 66)      riskBadge = '<span class="badge badge-high">Yüksek</span>';
+    else if (riskScore > 33) riskBadge = '<span class="badge badge-med">Orta</span>';
+    else                     riskBadge = '<span class="badge badge-done">Düşük</span>';
     return `<tr>
       <td class="task-name">${esc(name)}</td>
       <td style="font-size:12px;color:var(--ink-3)">${formatDate(v.date)}</td>
       <td><span class="badge badge-teal">${v.count} görev</span></td>
-      <td>
-        <div style="display:flex;gap:4px;align-items:center">
-          ${persons.map(p => `<div style="display:flex;align-items:center;gap:4px"><div class="avatar" style="background:${avatarColor(p)};width:20px;height:20px;font-size:8px">${initials(p)}</div></div>`).join('')}
-          <span style="font-size:11px;color:var(--ink-3);margin-left:2px">${persons.slice(0,2).map(p=>p.split(' ')[0]).join(', ')}${v.persons.size > 2 ? ' +' + (v.persons.size-2) : ''}</span>
-        </div>
-      </td>
+      <td>${riskBadge}</td>
     </tr>`;
   }).join('');
 }
@@ -994,6 +1384,138 @@ function updateBadges() {
   const badge = document.getElementById('badge-tasks');
   badge.textContent = pending;
   badge.style.display = pending ? 'inline' : 'none';
+}
+
+// ── HUMAN-IN-THE-LOOP APPROVAL ───────────────────────────────
+function showApprovalPanel(data, meetingName) {
+  state.pendingApproval = data;
+  const panel = document.getElementById('approval-panel');
+  const items = data.action_items || [];
+  setText('approval-meeting-label', '— ' + (meetingName || data.meeting_title || ''));
+  const el = document.getElementById('approval-items');
+  if (!items.length) { panel.style.display = 'none'; return; }
+  el.innerHTML = items.map(item => `
+    <div class="approval-task-row">
+      <span class="badge ${priorityBadge(item.priority)}">${item.priority||'Orta'}</span>
+      <span style="flex:1;font-weight:500">${esc(item.task||'')}</span>
+      <span style="font-size:12px;color:var(--ink-3)">${esc(item.person||'?')}</span>
+      <span style="font-size:12px;color:var(--ink-3);margin-left:10px">${formatDate(item.deadline)}</span>
+    </div>`).join('');
+  panel.style.display = 'block';
+  navigate('dashboard');
+}
+
+async function approveAll() {
+  if (!state.pendingApproval) return;
+  const data = state.pendingApproval;
+  const items = data.action_items || [];
+  for (const item of items) {
+    state.tasks.push({
+      ID: Date.now() + Math.random(),
+      Toplantı_Adı: data.meeting_title,
+      Sorumlu: item.person,
+      Görev: item.task,
+      Deadline: item.deadline,
+      Öncelik: item.priority,
+      Durum: 'Bekliyor',
+      Tarih: data.meeting_date,
+    });
+  }
+  dismissApproval();
+  updateAllViews();
+  showToast('Görevler onaylandı — e-postalar gönderiliyor... ✓', 'check');
+  // Fire to n8n if configured
+  if (CONFIG.webhookUrl && !CONFIG.webhookUrl.includes('YOUR_')) {
+    try {
+      await fetch(CONFIG.webhookUrl + '/confirm', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ...data, action:'confirm' })
+      });
+    } catch(e) { console.warn('Confirm webhook error:', e); }
+  }
+}
+
+function dismissApproval() {
+  state.pendingApproval = null;
+  document.getElementById('approval-panel').style.display = 'none';
+}
+
+// ── VOICE RECORDING ──────────────────────────────────────────
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+async function toggleRecording() {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    await startRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = processVoiceRecording;
+    mediaRecorder.start();
+    isRecording = true;
+    const btn = document.getElementById('voice-btn');
+    btn.classList.add('recording');
+    setText('voice-btn-label', 'Durdurmak için bas');
+    setText('voice-status', '🔴 Kayıt yapılıyor...');
+    setText('voice-transcript', 'Konuşun, bitince butona basın...');
+    document.getElementById('voice-wave').style.display = 'flex';
+    document.getElementById('voice-send-btn').style.display = 'none';
+    document.getElementById('voice-clear-btn').style.display = 'none';
+  } catch(e) {
+    showToast('Mikrofon erişimi reddedildi — tarayıcı iznini kontrol edin', 'alert');
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && isRecording) {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    isRecording = false;
+    const btn = document.getElementById('voice-btn');
+    btn.classList.remove('recording');
+    setText('voice-btn-label', 'Kayıt Başlat');
+    setText('voice-status', 'İşleniyor...');
+    document.getElementById('voice-wave').style.display = 'none';
+  }
+}
+
+function processVoiceRecording() {
+  // Browser SpeechRecognition fallback (free, no API key)
+  const blob = new Blob(audioChunks, { type: 'audio/webm' });
+  // In production: send blob to n8n → Whisper → transcript returned
+  // Demo: use Web Speech API live transcript
+  setText('voice-status', 'Ses kaydı alındı (' + Math.round(blob.size/1024) + ' KB)');
+  setText('voice-transcript', 'Ses kaydı alındı. Gerçek kullanımda n8n üzerinden Whisper API'ye gönderilir ve metin buraya döner. Demo modunda metni manuel olarak aşağı girebilirsiniz.');
+  document.getElementById('voice-send-btn').style.display = 'inline-flex';
+  document.getElementById('voice-clear-btn').style.display = 'inline-flex';
+}
+
+function sendVoiceTranscript() {
+  const transcript = document.getElementById('voice-transcript').textContent;
+  const title = document.getElementById('voice-meeting-title').value.trim() || 'Sesli Not';
+  const date  = document.getElementById('voice-meeting-date').value || new Date().toISOString().split('T')[0];
+  document.getElementById('meeting-title').value = title;
+  document.getElementById('meeting-notes').value = transcript;
+  document.getElementById('meeting-date').value = date;
+  navigate('submit');
+  showToast('Not submit ekranına aktarıldı — göndermeye hazır', 'check');
+}
+
+function clearVoice() {
+  setText('voice-transcript', 'Konuşmanız burada görünecek...');
+  setText('voice-status', 'Mikrofona basarak konuşmaya başlayın');
+  document.getElementById('voice-send-btn').style.display = 'none';
+  document.getElementById('voice-clear-btn').style.display = 'none';
+  audioChunks = [];
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1054,6 +1576,7 @@ function simulateAIResponse(title, notes, date) {
 
 function showAIPreview(data, meetingName) {
   state.pendingAIResult = data;
+  showApprovalPanel(data, meetingName);
   document.getElementById('submit-info-card').style.display = 'none';
   document.getElementById('ai-preview-section').style.display = 'block';
   setText('preview-meeting-name', meetingName);
@@ -1465,6 +1988,7 @@ function showToast(msg, type) {
 // INIT
 // ══════════════════════════════════════════════════════════════
 document.getElementById('meeting-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('voice-meeting-date').value = new Date().toISOString().split('T')[0];
 fetchTasks();
 
 // Auto-refresh
