@@ -1,2 +1,27 @@
-# meetmind
-Toplantı biter, notlar Notion'da kalır, hiçbir görev atanmaz. MeetMind'a toplantı notu yapıştırılır (veya ses dosyası yüklenir). Sistem AI ile aksiyon maddelerini çıkarır, "Kim ne yapacak, ne zamana kadar?" bilgisini parse eder, kişilere otomatik e-posta gönderir ve görevleri Sheets'e kaydeder. Takip toplantısını da takvime ekler.
+# MeetMind — Toplantı Notu → Aksiyon Otomasyonu
+
+## Demo
+- 🎬 Video: [YouTube Linki]
+- 📊 Dashboard: [Retool Linki]
+- 🌐 Sunum Sitesi: [GitHub Pages Linki]
+
+## Sorun
+Toplantı sonrası görevler kaybolur, sorumlular karışır.
+
+## Çözüm
+Toplantı notunu sisteme girin → AI görevleri çıkarır → herkes e-posta alır.
+
+## Kullanılan Araçlar
+n8n · Google Gemini · Google Sheets · Gmail · Google Calendar · Retool · GitHub Pages
+
+## Kurulum
+1. Google Sheets'i şablona göre oluşturun
+2. n8n'e workflow JSON'larını import edin
+3. Credential'ları ve API anahtarlarını girin
+4. Webhook URL'sini test edin
+
+## Ekip
+Kişi A — Otomasyon
+Kişi B — Veri & Altyapı
+Kişi C — Dashboard & Sunum
+
