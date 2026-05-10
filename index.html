@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeetMind — Toplantı Asistanı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:     #0D9488;
+  --teal-d:   #0F766E;
+  --teal-l:   #CCFBF1;
+  --teal-xl:  #F0FDFA;
+  --ink:      #0F172A;
+  --ink-2:    #334155;
+  --ink-3:    #64748B;
+  --ink-4:    #94A3B8;
+  --surf:     #FFFFFF;
+  --surf-2:   #F8FAFC;
+  --surf-3:   #F1F5F9;
+  --border:   #E2E8F0;
+  --border-d: #CBD5E1;
+  --red:      #EF4444;
+  --red-l:    #FEF2F2;
+  --amber:    #F59E0B;
+  --amber-l:  #FFFBEB;
+  --green:    #10B981;
+  --green-l:  #ECFDF5;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.06);
+  --trans: all .2s cubic-bezier(.4,0,.2,1);
+}
+
+html,body{height:100%;font-family:var(--font-body);background:var(--surf-2);color:var(--ink);font-size:15px;line-height:1.6}
+
+/* ── LAYOUT ────────────────────────────────────────────────── */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ───────────────────────────────────────────────── */
+.sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--ink);
+  display:flex;flex-direction:column;
+  padding:0;
+  position:relative;
+  overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 0%, rgba(13,148,136,.25) 0%, transparent 60%);
+  pointer-events:none;
+}
+.sidebar-logo{
+  padding:28px 24px 24px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.sidebar-logo .wordmark{
+  font-family:var(--font-display);
+  font-size:22px;color:#FFFFFF;
+  letter-spacing:-.02em;
+  display:flex;align-items:center;gap:8px;
+}
+.sidebar-logo .wordmark .dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--teal);
+  box-shadow:0 0 10px rgba(13,148,136,.6);
+}
+.sidebar-logo .tagline{
+  font-size:11px;color:rgba(255,255,255,.38);
+  margin-top:4px;letter-spacing:.04em;text-transform:uppercase;
+}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-section-label{
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.28);padding:12px 24px 6px;font-weight:500;
+}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 24px;cursor:pointer;
+  font-size:13.5px;font-weight:400;
+  color:rgba(255,255,255,.6);
+  transition:var(--trans);
+  position:relative;border:none;background:none;width:100%;text-align:left;
+}
+.nav-item:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.06)}
+.nav-item.active{
+  color:#FFFFFF;background:rgba(13,148,136,.2);
+  font-weight:500;
+}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:3px;background:var(--teal);border-radius:0 2px 2px 0;
+}
+.nav-item .nav-icon{
+  width:18px;height:18px;opacity:.7;flex-shrink:0;
+  fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;
+}
+.nav-item.active .nav-icon{opacity:1}
+.nav-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;
+}
+.sidebar-footer{
+  padding:20px 24px;border-top:1px solid rgba(255,255,255,.08);
+  font-size:12px;color:rgba(255,255,255,.28);
+  display:flex;flex-direction:column;gap:4px;
+}
+.status-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--green);margin-right:6px;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── MAIN CONTENT ──────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{
+  background:var(--surf);border-bottom:1px solid var(--border);
+  padding:0 32px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.topbar-title{font-family:var(--font-display);font-size:19px;color:var(--ink);letter-spacing:-.02em}
+.topbar-sub{font-size:12px;color:var(--ink-3);margin-top:1px}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.content{flex:1;overflow-y:auto;padding:28px 32px}
+
+/* ── SCREENS ───────────────────────────────────────────────── */
+.screen{display:none;animation:fadeUp .22s ease both}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── CARDS & COMPONENTS ────────────────────────────────────── */
+.card{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r-lg);box-shadow:var(--shadow-sm);
+}
+.card-header{
+  padding:18px 22px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{font-size:13px;font-weight:500;color:var(--ink-2);letter-spacing:.01em}
+.card-body{padding:20px 22px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;
+  box-shadow:var(--shadow-sm);
+  position:relative;overflow:hidden;
+}
+.kpi::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;
+  border-radius:0 var(--r-lg) 0 60px;opacity:.06;}
+.kpi.kpi-total::after{background:var(--ink)}
+.kpi.kpi-done::after{background:var(--green)}
+.kpi.kpi-wait::after{background:var(--amber)}
+.kpi.kpi-late::after{background:var(--red)}
+.kpi-label{font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.kpi-val{font-family:var(--font-display);font-size:36px;line-height:1;color:var(--ink)}
+.kpi.kpi-done .kpi-val{color:var(--green)}
+.kpi.kpi-wait .kpi-val{color:var(--amber)}
+.kpi.kpi-late .kpi-val{color:var(--red)}
+.kpi-sub{font-size:11px;color:var(--ink-4);margin-top:6px}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+
+/* ── BADGES ─────────────────────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;
+  white-space:nowrap;
+}
+.badge-high{background:var(--red-l);color:#DC2626}
+.badge-med {background:var(--amber-l);color:#D97706}
+.badge-low {background:var(--surf-3);color:var(--ink-3)}
+.badge-done{background:var(--green-l);color:#059669}
+.badge-wip {background:#EFF6FF;color:#2563EB}
+.badge-wait{background:var(--surf-3);color:var(--ink-3)}
+.badge-teal{background:var(--teal-l);color:var(--teal-d)}
+
+/* ── TABLE ──────────────────────────────────────────────────── */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{
+  font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--border);background:var(--surf-2);
+}
+.data-table th:first-child{border-radius:var(--r-sm) 0 0 0}
+.data-table th:last-child{border-radius:0 var(--r-sm) 0 0}
+.data-table td{
+  padding:12px 14px;border-bottom:1px solid var(--border);
+  font-size:13px;color:var(--ink-2);vertical-align:middle;
+}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--surf-2)}
+.data-table .task-name{font-weight:500;color:var(--ink);max-width:280px}
+.data-table .person-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--ink-2);
+}
+.avatar{
+  width:24px;height:24px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:600;color:#fff;flex-shrink:0;
+}
+
+/* ── FORMS ──────────────────────────────────────────────────── */
+.form-group{margin-bottom:18px}
+.form-label{
+  display:block;font-size:12px;font-weight:500;
+  color:var(--ink-2);margin-bottom:6px;letter-spacing:.01em;
+}
+.form-input,.form-select,.form-textarea{
+  width:100%;padding:10px 14px;
+  border:1px solid var(--border-d);border-radius:var(--r-md);
+  background:var(--surf);color:var(--ink);font-family:var(--font-body);font-size:14px;
+  transition:var(--trans);outline:none;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{
+  border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.12);
+}
+.form-textarea{resize:vertical;min-height:140px;line-height:1.6}
+.form-hint{font-size:11px;color:var(--ink-4);margin-top:5px}
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border-radius:var(--r-md);font-family:var(--font-body);
+  font-size:13px;font-weight:500;cursor:pointer;border:none;
+  transition:var(--trans);text-decoration:none;
+}
+.btn-primary{background:var(--teal);color:#fff;box-shadow:0 2px 8px rgba(13,148,136,.3)}
+.btn-primary:hover{background:var(--teal-d);box-shadow:0 4px 14px rgba(13,148,136,.4);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{background:transparent;color:var(--ink-2);border:1px solid var(--border-d)}
+.btn-ghost:hover{background:var(--surf-2);border-color:var(--border-d)}
+.btn-danger{background:var(--red-l);color:#DC2626;border:1px solid #FECACA}
+.btn-danger:hover{background:#FEE2E2}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-icon{width:34px;height:34px;padding:0;justify-content:center;border:1px solid var(--border);background:var(--surf);color:var(--ink-3);border-radius:var(--r-md)}
+.btn-icon:hover{background:var(--surf-2);color:var(--ink)}
+
+/* ── FILTERS ────────────────────────────────────────────────── */
+.filter-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 0;margin-bottom:4px;flex-wrap:wrap;
+}
+.filter-select{
+  padding:7px 12px;border:1px solid var(--border-d);border-radius:var(--r-md);
+  font-size:13px;font-family:var(--font-body);color:var(--ink-2);
+  background:var(--surf);cursor:pointer;outline:none;
+}
+.filter-select:focus{border-color:var(--teal)}
+.search-wrap{position:relative;flex:1;max-width:280px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--ink-4);fill:none;stroke-width:2}
+.search-input{
+  width:100%;padding:8px 12px 8px 32px;
+  border:1px solid var(--border-d);border-radius:var(--r-md);
+  font-size:13px;font-family:var(--font-body);color:var(--ink);background:var(--surf);outline:none;
+}
+.search-input:focus{border-color:var(--teal)}
+
+/* ── AI PREVIEW ─────────────────────────────────────────────── */
+.ai-preview{
+  border:1px solid #86EFAC;border-radius:var(--r-lg);
+  background:linear-gradient(135deg,#F0FDF4,#ECFDF5);
+  overflow:hidden;
+}
+.ai-preview-header{
+  padding:14px 18px;background:rgba(16,185,129,.08);
+  border-bottom:1px solid #BBF7D0;
+  display:flex;align-items:center;gap:8px;
+}
+.ai-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--teal);color:#fff;
+  font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;
+}
+.ai-preview-body{padding:16px 18px}
+.preview-task{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;border-bottom:1px solid rgba(134,239,172,.4);
+}
+.preview-task:last-of-type{border-bottom:none}
+.preview-task-name{flex:1;font-size:13.5px;font-weight:500;color:var(--ink)}
+.preview-task-who{font-size:12px;color:var(--ink-3)}
+.preview-task-date{font-size:12px;color:var(--ink-3);min-width:70px;text-align:right}
+.ai-actions{display:flex;gap:8px;padding:14px 18px;border-top:1px solid #BBF7D0;background:rgba(255,255,255,.5)}
+
+/* ── CALENDAR ───────────────────────────────────────────────── */
+.cal-grid-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;text-align:center}
+.cal-day-name{font-size:11px;color:var(--ink-3);padding:6px 0;font-weight:500}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:13px;border-radius:var(--r-md);cursor:pointer;
+  color:var(--ink-2);position:relative;transition:var(--trans);
+  flex-direction:column;gap:2px;
+}
+.cal-cell:hover{background:var(--surf-2)}
+.cal-cell.other-month{color:var(--ink-4)}
+.cal-cell.today{background:var(--teal);color:#fff;font-weight:500;box-shadow:0 2px 8px rgba(13,148,136,.35)}
+.cal-cell.has-event::after{content:'';width:4px;height:4px;border-radius:50%;background:var(--red);position:absolute;bottom:4px;left:50%;transform:translateX(-50%)}
+.cal-cell.today.has-event::after{background:#fff}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-month{font-family:var(--font-display);font-size:17px;color:var(--ink)}
+
+/* ── NOTES ──────────────────────────────────────────────────── */
+.note-list{display:flex;flex-direction:column;gap:10px}
+.note-item{
+  background:var(--surf);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:14px 16px;cursor:pointer;transition:var(--trans);
+}
+.note-item:hover{border-color:var(--teal);box-shadow:var(--shadow-sm)}
+.note-item.selected{border-color:var(--teal);box-shadow:0 0 0 2px rgba(13,148,136,.15)}
+.note-title{font-weight:500;font-size:14px;color:var(--ink);margin-bottom:4px}
+.note-meta{font-size:12px;color:var(--ink-3)}
+.note-excerpt{font-size:12.5px;color:var(--ink-3);margin-top:6px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ── LOADING / STATUS ───────────────────────────────────────── */
+.loading-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.5);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;backdrop-filter:blur(4px);opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+.loading-overlay.visible{opacity:1;pointer-events:all}
+.loading-box{
+  background:var(--surf);border-radius:var(--r-xl);
+  padding:32px 40px;text-align:center;box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+}
+.spinner{
+  width:36px;height:36px;border:3px solid var(--teal-l);
+  border-top-color:var(--teal);border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;color:var(--ink-2);font-weight:500}
+.loading-sub{font-size:12px;color:var(--ink-3)}
+
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--ink);color:#fff;
+  padding:12px 20px;border-radius:var(--r-md);
+  font-size:13px;box-shadow:var(--shadow-lg);
+  transform:translateY(80px);opacity:0;transition:var(--trans);z-index:200;
+  display:flex;align-items:center;gap:8px;
+}
+.toast.visible{transform:none;opacity:1}
+.toast-icon{width:16px;height:16px;flex-shrink:0}
+
+/* ── PROGRESS BAR ────────────────────────────────────────────── */
+.prog-bar-wrap{background:var(--surf-3);border-radius:4px;height:6px;overflow:hidden}
+.prog-bar{height:100%;border-radius:4px;background:var(--teal);transition:width .4s ease}
+
+/* ── DIVIDER ────────────────────────────────────────────────── */
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+/* ── EMPTY STATE ────────────────────────────────────────────── */
+.empty{text-align:center;padding:60px 20px;color:var(--ink-3)}
+.empty svg{width:48px;height:48px;stroke:var(--ink-4);fill:none;stroke-width:1.5;margin:0 auto 16px;display:block}
+.empty p{font-size:14px}
+
+/* ── SCROLLBAR ──────────────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-d);border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-4)}
+
+/* ── MOBILE ─────────────────────────────────────────────────── */
+@media(max-width:768px){
+  .sidebar{width:60px}
+  .sidebar-logo .wordmark span,.sidebar-logo .tagline,.nav-item span,.nav-badge,.nav-section-label,.sidebar-footer{display:none}
+  .sidebar-logo{padding:16px;text-align:center}
+  .nav-item{padding:14px;justify-content:center}
+  .nav-item .nav-icon{margin:0}
+  .main{min-width:0}
+  .topbar{padding:0 16px}
+  .content{padding:16px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ CONFIG — FILL THESE IN ════════════════════════════════ -->
+<script>
+const CONFIG = {
+  // n8n webhook URL — Bölüm 5, Adım 11'den kopyalayın
+  webhookUrl: 'YOUR_N8N_WEBHOOK_URL_HERE',
+
+  // SheetDB API URL — sheetdb.io'dan alın (ücretsiz)
+  // Alternatif: Google Sheets Published CSV URL
+  sheetDbUrl: 'YOUR_SHEETDB_API_URL_HERE',
+
+  // Sheets ID (fallback için)
+  sheetId: 'YOUR_GOOGLE_SHEET_ID_HERE',
+
+  // Görev güncellemek için ayrı bir n8n webhook (opsiyonel)
+  updateWebhookUrl: 'YOUR_N8N_UPDATE_WEBHOOK_URL_HERE',
+
+  refreshInterval: 30000, // 30 saniyede bir veri güncelle
+};
+</script>
+
+<!-- ════ SVG ICONS ══════════════════════════════════════════════ -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ico-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="ico-submit" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5"/><path d="M11 13l9-9"/><path d="M15 4h5v5"/></symbol>
+  <symbol id="ico-tasks" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+  <symbol id="ico-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+  <symbol id="ico-notes" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></symbol>
+  <symbol id="ico-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+  <symbol id="ico-spark" viewBox="0 0 24 24"><path d="M12 3L14.09 8.26L20 9.27L16 13.14L17.18 19.02L12 16.25L6.82 19.02L8 13.14L4 9.27L9.91 8.26L12 3Z"/></symbol>
+  <symbol id="ico-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="ico-mail" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
+  <symbol id="ico-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+  <symbol id="ico-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+</svg>
+
+<div class="app">
+  <!-- ── SIDEBAR ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="wordmark"><div class="dot"></div><span>MeetMind</span></div>
+      <div class="tagline">Toplantı Asistanı</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Ana Menü</div>
+      <button class="nav-item active" onclick="navigate('dashboard')">
+        <svg class="nav-icon"><use href="#ico-dash"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" onclick="navigate('submit')">
+        <svg class="nav-icon"><use href="#ico-submit"/></svg>
+        <span>Toplantı Gönder</span>
+      </button>
+      <button class="nav-item" onclick="navigate('tasks')">
+        <svg class="nav-icon"><use href="#ico-tasks"/></svg>
+        <span>Görevler</span>
+        <span class="nav-badge" id="badge-tasks">0</span>
+      </button>
+      <div class="nav-section-label" style="margin-top:8px">Görünümler</div>
+      <button class="nav-item" onclick="navigate('calendar')">
+        <svg class="nav-icon"><use href="#ico-cal"/></svg>
+        <span>Takvim</span>
+      </button>
+      <button class="nav-item" onclick="navigate('notes')">
+        <svg class="nav-icon"><use href="#ico-notes"/></svg>
+        <span>Toplantı Notları</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div><span class="status-dot"></span>Sistem aktif</div>
+      <div>n8n · Gemini · Sheets</div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ─────────────────────────────────────────────── -->
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-sub" id="topbar-sub">Genel bakış</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-icon btn" onclick="refreshData()" title="Yenile">
+          <svg style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2"><use href="#ico-refresh"/></svg>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="navigate('submit')">
+          <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2"><use href="#ico-submit"/></svg>
+          Toplantı Ekle
+        </button>
+      </div>
+    </header>
+
+    <main class="content" id="main-content">
+
+      <!-- ════ DASHBOARD ════════════════════════════════════ -->
+      <div class="screen active" id="screen-dashboard">
+
+        <div class="kpi-grid">
+          <div class="kpi kpi-total">
+            <div class="kpi-label">Toplam Görev</div>
+            <div class="kpi-val" id="kpi-total">—</div>
+            <div class="kpi-sub" id="kpi-total-sub">Yükleniyor...</div>
+          </div>
+          <div class="kpi kpi-done">
+            <div class="kpi-label">Tamamlanan</div>
+            <div class="kpi-val" id="kpi-done">—</div>
+            <div class="kpi-sub" id="kpi-done-sub"></div>
+          </div>
+          <div class="kpi kpi-wait">
+            <div class="kpi-label">Bekleyen</div>
+            <div class="kpi-val" id="kpi-wait">—</div>
+            <div class="kpi-sub" id="kpi-wait-sub"></div>
+          </div>
+          <div class="kpi kpi-late">
+            <div class="kpi-label">Geciken</div>
+            <div class="kpi-val" id="kpi-late">—</div>
+            <div class="kpi-sub" id="kpi-late-sub"></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Acil Görevler</span>
+              <span class="badge badge-high" id="dash-urgent-count">—</span>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="data-table" id="dash-urgent-table">
+                <tbody id="dash-urgent-body">
+                  <tr><td colspan="3" style="text-align:center;color:var(--ink-4);padding:24px">Yükleniyor...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Kişi Bazlı Dağılım</span>
+            </div>
+            <div class="card-body" id="dash-persons">
+              <div style="color:var(--ink-4);font-size:13px">Yükleniyor...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Son Toplantılar</span>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('notes')">Tümünü Gör →</button>
+          </div>
+          <div class="card-body" style="padding:0">
+            <table class="data-table">
+              <thead><tr>
+                <th>Toplantı</th><th>Tarih</th><th>Görev</th><th>Sorumlular</th>
+              </tr></thead>
+              <tbody id="dash-meetings-body">
+                <tr><td colspan="4" style="text-align:center;color:var(--ink-4);padding:24px">Yükleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ SUBMIT ════════════════════════════════════════ -->
+      <div class="screen" id="screen-submit">
+        <div class="grid-2" style="align-items:start">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header">
+                <span class="card-title">Toplantı Bilgileri</span>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="form-label">Toplantı Adı *</label>
+                  <input class="form-input" type="text" id="meeting-title" placeholder="ör. Q2 Sprint Review, Müşteri Senkronizasyonu">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tarih</label>
+                  <input class="form-input" type="date" id="meeting-date">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label">
+                    Toplantı Notu
+                    <span class="badge badge-teal" style="margin-left:6px;vertical-align:middle">
+                      <svg style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2"><use href="#ico-spark"/></svg>
+                      AI İşleyecek
+                    </span>
+                  </label>
+                  <textarea class="form-textarea" id="meeting-notes" style="min-height:220px"
+                    placeholder="Toplantı notunu buraya yapıştırın. Örnek:&#10;&#10;Ahmet API entegrasyonunu bu hafta tamamlayacak. Zeynep kullanıcı testlerini 19 Mayıs'a kadar bitirecek — yüksek öncelik. Can teknik dokümanı ay sonuna kadar hazırlayacak. Önümüzdeki pazartesi takip toplantısı."></textarea>
+                  <div class="form-hint">Yapay zeka notu okuyarak kişi, görev ve deadline bilgilerini otomatik çıkaracak</div>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="submitMeeting()">
+              <svg style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2"><use href="#ico-submit"/></svg>
+              Gönder ve Yapay Zeka ile İşle
+            </button>
+          </div>
+
+          <div>
+            <!-- AI Preview -->
+            <div id="ai-preview-section" style="display:none">
+              <div class="ai-preview">
+                <div class="ai-preview-header">
+                  <span class="ai-tag">
+                    <svg style="width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2"><use href="#ico-spark"/></svg>
+                    Gemini AI Çıktısı
+                  </span>
+                  <span style="font-size:12px;color:var(--ink-3);margin-left:8px" id="preview-meeting-name"></span>
+                </div>
+                <div class="ai-preview-body" id="ai-preview-body"></div>
+                <div class="ai-actions">
+                  <button class="btn btn-primary btn-sm" onclick="confirmTasks()">
+                    <svg style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5"><use href="#ico-check"/></svg>
+                    Onayla ve Kaydet
+                  </button>
+                  <button class="btn btn-ghost btn-sm" onclick="editTasks()">Düzenle</button>
+                  <button class="btn btn-danger btn-sm" onclick="rejectTasks()">Reddet</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Info card when no preview -->
+            <div id="submit-info-card" class="card">
+              <div class="card-body">
+                <div style="font-size:13px;color:var(--ink-2);line-height:1.7;margin-bottom:16px">
+                  <strong style="font-weight:500">Nasıl Çalışır?</strong><br><br>
+                  <strong>1.</strong> Toplantı notunu yapıştırın<br>
+                  <strong>2.</strong> "Gönder" butonuna basın<br>
+                  <strong>3.</strong> Gemini AI notu analiz eder<br>
+                  <strong>4.</strong> Çıkarılan görevler önizleme olarak gösterilir<br>
+                  <strong>5.</strong> Onayladıktan sonra:<br>
+                  &nbsp;&nbsp;→ Google Sheets'e eklenir<br>
+                  &nbsp;&nbsp;→ Her sorumluya e-posta gönderilir<br>
+                  &nbsp;&nbsp;→ Google Calendar'a etkinlik eklenir
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-3)">
+                    <svg style="width:14px;height:14px;fill:none;stroke:var(--teal);stroke-width:2"><use href="#ico-check"/></svg>
+                    Onaylamadan önce düzenleyebilirsiniz
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-3)">
+                    <svg style="width:14px;height:14px;fill:none;stroke:var(--teal);stroke-width:2"><use href="#ico-check"/></svg>
+                    AI hatalı çıkardıysa "Reddet" ile iptal edilir
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-3)">
+                    <svg style="width:14px;height:14px;fill:none;stroke:var(--teal);stroke-width:2"><use href="#ico-check"/></svg>
+                    Her gönderide takvim hatırlatıcısı oluşur
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ TASKS ══════════════════════════════════════════ -->
+      <div class="screen" id="screen-tasks">
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <svg><use href="#ico-search"/></svg>
+            <input class="search-input" type="text" id="task-search" placeholder="Görev veya kişi ara..." oninput="renderTaskTable()">
+          </div>
+          <select class="filter-select" id="filter-status" onchange="renderTaskTable()">
+            <option value="">Tüm durumlar</option>
+            <option value="Bekliyor">Bekliyor</option>
+            <option value="Devam Ediyor">Devam Ediyor</option>
+            <option value="Tamamlandı">Tamamlandı</option>
+          </select>
+          <select class="filter-select" id="filter-priority" onchange="renderTaskTable()">
+            <option value="">Tüm öncelikler</option>
+            <option value="Yüksek">Yüksek</option>
+            <option value="Orta">Orta</option>
+            <option value="Düşük">Düşük</option>
+          </select>
+          <select class="filter-select" id="filter-person" onchange="renderTaskTable()">
+            <option value="">Herkes</option>
+          </select>
+          <div style="margin-left:auto;font-size:12px;color:var(--ink-3)" id="task-count-label"></div>
+        </div>
+        <div class="card">
+          <table class="data-table">
+            <thead><tr>
+              <th>Öncelik</th>
+              <th>Görev</th>
+              <th>Sorumlu</th>
+              <th>Deadline</th>
+              <th>Durum</th>
+              <th>Toplantı</th>
+            </tr></thead>
+            <tbody id="task-table-body">
+              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-4)">Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════ CALENDAR ══════════════════════════════════════ -->
+      <div class="screen" id="screen-calendar">
+        <div class="grid-2" style="align-items:start">
+          <div class="card">
+            <div class="card-body">
+              <div class="cal-nav">
+                <button class="btn btn-ghost btn-sm" onclick="calPrev()">← Önceki</button>
+                <div class="cal-month" id="cal-month-label">Mayıs 2026</div>
+                <button class="btn btn-ghost btn-sm" onclick="calNext()">Sonraki →</button>
+              </div>
+              <div class="cal-grid-header">
+                <div class="cal-day-name">Pt</div><div class="cal-day-name">Sa</div>
+                <div class="cal-day-name">Ça</div><div class="cal-day-name">Pe</div>
+                <div class="cal-day-name">Cu</div><div class="cal-day-name">Ct</div>
+                <div class="cal-day-name">Pz</div>
+              </div>
+              <div class="cal-grid" id="cal-cells"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" id="cal-selected-label">Deadline'lar</span>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="data-table">
+                <tbody id="cal-event-list">
+                  <tr><td colspan="2" style="text-align:center;padding:32px;color:var(--ink-4)">Görev yükleniyor...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ NOTES ═════════════════════════════════════════ -->
+      <div class="screen" id="screen-notes">
+        <div class="grid-2" style="align-items:start">
+          <div>
+            <div class="card-title" style="margin-bottom:12px;font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em">Toplantı Arşivi</div>
+            <div class="note-list" id="note-list">
+              <div style="color:var(--ink-4);font-size:13px;padding:20px">Yükleniyor...</div>
+            </div>
+          </div>
+          <div id="note-detail">
+            <div class="card">
+              <div class="card-body" style="text-align:center;padding:60px 20px">
+                <svg style="width:40px;height:40px;stroke:var(--ink-4);fill:none;stroke-width:1.5;margin:0 auto 12px;display:block"><use href="#ico-notes"/></svg>
+                <p style="font-size:13px;color:var(--ink-3)">Bir toplantı seçin</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Yapay Zeka İşliyor</div>
+    <div class="loading-sub" id="loading-sub">Toplantı notu analiz ediliyor...</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg class="toast-icon" style="fill:none;stroke:currentColor;stroke-width:2"><use href="#ico-check"/></svg>
+  <span id="toast-msg">İşlem tamamlandı</span>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let state = {
+  tasks: [],
+  meetings: [],
+  currentScreen: 'dashboard',
+  calYear: new Date().getFullYear(),
+  calMonth: new Date().getMonth(),
+  selectedNote: null,
+  pendingAIResult: null,
+  lastRefresh: null,
+};
+
+// Avatar colors
+const AVATAR_COLORS = ['#0F766E','#1D4ED8','#7C3AED','#BE185D','#B45309','#0369A1','#065F46'];
+function avatarColor(name) {
+  let h = 0;
+  for (let c of (name||'')) h = (h*31 + c.charCodeAt(0)) & 0xFFFF;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+function initials(name) {
+  return (name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+function avatar(name) {
+  return `<div class="avatar" style="background:${avatarColor(name)}">${initials(name)}</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+const SCREEN_META = {
+  dashboard: { title:'Dashboard', sub:'Genel bakış ve özet' },
+  submit:    { title:'Toplantı Gönder', sub:'Notu yapıştırın, AI işlesin' },
+  tasks:     { title:'Görevler', sub:'Tüm görevler ve durumları' },
+  calendar:  { title:'Takvim', sub:'Deadline takibi' },
+  notes:     { title:'Toplantı Notları', sub:'Geçmiş toplantılar ve arşiv' },
+};
+
+function navigate(screen) {
+  state.currentScreen = screen;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + screen + "'"))
+      n.classList.add('active');
+  });
+  const meta = SCREEN_META[screen] || {};
+  document.getElementById('topbar-title').textContent = meta.title || screen;
+  document.getElementById('topbar-sub').textContent = meta.sub || '';
+  if (screen === 'calendar') renderCalendar();
+  if (screen === 'tasks') renderTaskTable();
+  if (screen === 'notes') renderNoteList();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATA FETCHING
+// ══════════════════════════════════════════════════════════════
+async function fetchTasks() {
+  // Try SheetDB first, then fall back to mock data
+  if (CONFIG.sheetDbUrl && !CONFIG.sheetDbUrl.includes('YOUR_')) {
+    try {
+      const res = await fetch(CONFIG.sheetDbUrl + '?sheet=Log');
+      const data = await res.json();
+      state.tasks = Array.isArray(data) ? data : [];
+    } catch (e) {
+      console.warn('SheetDB error, using demo data:', e);
+      state.tasks = getDemoTasks();
+    }
+  } else {
+    state.tasks = getDemoTasks();
+  }
+  state.lastRefresh = new Date();
+  updateAllViews();
+}
+
+function getDemoTasks() {
+  const today = new Date();
+  const d = (offset) => {
+    const dt = new Date(today);
+    dt.setDate(dt.getDate() + offset);
+    return dt.toISOString().split('T')[0];
+  };
+  return [
+    { ID:'1', Toplantı_Adı:'Q2 Sprint Review',    Sorumlu:'Ahmet Kaya',  Görev:'API entegrasyonunu tamamla',   Deadline:d(4),   Öncelik:'Yüksek', Durum:'Bekliyor',     Tarih:d(-2) },
+    { ID:'2', Toplantı_Adı:'Q2 Sprint Review',    Sorumlu:'Zeynep Aydın',Görev:'Kullanıcı testleri',           Deadline:d(9),   Öncelik:'Yüksek', Durum:'Devam Ediyor', Tarih:d(-2) },
+    { ID:'3', Toplantı_Adı:'Q2 Sprint Review',    Sorumlu:'Can Demir',   Görev:'Teknik doküman hazırla',       Deadline:d(21),  Öncelik:'Düşük',  Durum:'Bekliyor',     Tarih:d(-2) },
+    { ID:'4', Toplantı_Adı:'Müşteri Senkronizasyonu', Sorumlu:'Zeynep Aydın',Görev:'Müşteri geri bildirim raporu', Deadline:d(6),  Öncelik:'Orta',   Durum:'Bekliyor',     Tarih:d(-4) },
+    { ID:'5', Toplantı_Adı:'Müşteri Senkronizasyonu', Sorumlu:'Ahmet Kaya',  Görev:'Fiyatlandırma teklifini güncelle', Deadline:d(-1), Öncelik:'Yüksek', Durum:'Bekliyor', Tarih:d(-4) },
+    { ID:'6', Toplantı_Adı:'Haftalık Standart',   Sorumlu:'Can Demir',   Görev:'Haftalık raporu gönder',       Deadline:d(2),   Öncelik:'Orta',   Durum:'Tamamlandı',   Tarih:d(-6) },
+    { ID:'7', Toplantı_Adı:'Haftalık Standart',   Sorumlu:'Ahmet Kaya',  Görev:'Sunumu düzenle',               Deadline:d(3),   Öncelik:'Orta',   Durum:'Tamamlandı',   Tarih:d(-6) },
+    { ID:'8', Toplantı_Adı:'Ürün Yol Haritası',   Sorumlu:'Zeynep Aydın',Görev:'Q3 özellik listesi oluştur',  Deadline:d(14),  Öncelik:'Orta',   Durum:'Bekliyor',     Tarih:d(-7) },
+  ];
+}
+
+async function refreshData() {
+  showToast('Veriler güncelleniyor...', 'refresh');
+  await fetchTasks();
+  showToast('Veriler güncellendi ✓', 'check');
+}
+
+// ══════════════════════════════════════════════════════════════
+// DASHBOARD VIEW
+// ══════════════════════════════════════════════════════════════
+function updateAllViews() {
+  updateKPIs();
+  updateDashUrgent();
+  updateDashPersons();
+  updateDashMeetings();
+  updateBadges();
+  if (state.currentScreen === 'tasks') renderTaskTable();
+  if (state.currentScreen === 'calendar') renderCalendar();
+  if (state.currentScreen === 'notes') renderNoteList();
+}
+
+function updateKPIs() {
+  const tasks = state.tasks;
+  const total  = tasks.length;
+  const done   = tasks.filter(t => t.Durum === 'Tamamlandı').length;
+  const wait   = tasks.filter(t => t.Durum === 'Bekliyor').length;
+  const today  = new Date().toISOString().split('T')[0];
+  const late   = tasks.filter(t => t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı').length;
+  const pct    = total ? Math.round(done/total*100) : 0;
+
+  setText('kpi-total', total);
+  setText('kpi-done', done);
+  setText('kpi-wait', wait);
+  setText('kpi-late', late);
+  setText('kpi-total-sub', total + ' kayıtlı görev');
+  setText('kpi-done-sub', pct + '% tamamlanma oranı');
+  setText('kpi-wait-sub', wait + ' görev aksiyon bekliyor');
+  setText('kpi-late-sub', late > 0 ? 'Dikkat gerekiyor!' : 'Gecikme yok ✓');
+}
+
+function updateDashUrgent() {
+  const today = new Date().toISOString().split('T')[0];
+  const urgent = state.tasks
+    .filter(t => t.Durum !== 'Tamamlandı')
+    .sort((a,b) => (a.Deadline||'9999') < (b.Deadline||'9999') ? -1 : 1)
+    .slice(0, 5);
+
+  setText('dash-urgent-count', urgent.length + ' görev');
+  const body = document.getElementById('dash-urgent-body');
+  if (!urgent.length) {
+    body.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--ink-4)">Bekleyen acil görev yok ✓</td></tr>';
+    return;
+  }
+  body.innerHTML = urgent.map(t => {
+    const late = t.Deadline && t.Deadline < today;
+    const pb = priorityBadge(t.Öncelik);
+    return `<tr>
+      <td><span class="badge ${pb}">${t.Öncelik||'—'}</span></td>
+      <td class="task-name">${esc(t.Görev||'')}</td>
+      <td style="font-size:12px;color:${late?'var(--red)':'var(--ink-3)'}">
+        ${late?'⚠ ':''}${formatDate(t.Deadline)}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateDashPersons() {
+  const persons = {};
+  for (const t of state.tasks) {
+    const p = t.Sorumlu || 'Bilinmiyor';
+    if (!persons[p]) persons[p] = { total:0, done:0 };
+    persons[p].total++;
+    if (t.Durum === 'Tamamlandı') persons[p].done++;
+  }
+  const sorted = Object.entries(persons).sort((a,b) => b[1].total - a[1].total).slice(0,5);
+  const maxTotal = Math.max(...sorted.map(([,v]) => v.total), 1);
+  const el = document.getElementById('dash-persons');
+  if (!sorted.length) { el.innerHTML = '<div style="color:var(--ink-4);font-size:13px">Henüz görev yok</div>'; return; }
+  el.innerHTML = sorted.map(([name, v]) => {
+    const pct = Math.round(v.total / maxTotal * 100);
+    const donePct = Math.round(v.done / v.total * 100);
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:7px">
+          ${avatar(name)}
+          <span style="font-size:13px;font-weight:500;color:var(--ink)">${esc(name)}</span>
+        </div>
+        <span style="font-size:11px;color:var(--ink-3)">${v.done}/${v.total} · ${donePct}%</span>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar" style="width:${pct}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateDashMeetings() {
+  const byMeeting = {};
+  for (const t of state.tasks) {
+    const m = t.Toplantı_Adı || 'Bilinmiyor';
+    if (!byMeeting[m]) byMeeting[m] = { persons: new Set(), count: 0, date: t.Tarih||'' };
+    byMeeting[m].count++;
+    if (t.Sorumlu) byMeeting[m].persons.add(t.Sorumlu);
+  }
+  const meetings = Object.entries(byMeeting).sort((a,b) => (b[1].date||'') > (a[1].date||'') ? 1:-1).slice(0,5);
+  const body = document.getElementById('dash-meetings-body');
+  if (!meetings.length) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-4)">Henüz toplantı yok</td></tr>';
+    return;
+  }
+  body.innerHTML = meetings.map(([name, v]) => {
+    const persons = [...v.persons].slice(0,3);
+    return `<tr>
+      <td class="task-name">${esc(name)}</td>
+      <td style="font-size:12px;color:var(--ink-3)">${formatDate(v.date)}</td>
+      <td><span class="badge badge-teal">${v.count} görev</span></td>
+      <td>
+        <div style="display:flex;gap:4px;align-items:center">
+          ${persons.map(p => `<div style="display:flex;align-items:center;gap:4px"><div class="avatar" style="background:${avatarColor(p)};width:20px;height:20px;font-size:8px">${initials(p)}</div></div>`).join('')}
+          <span style="font-size:11px;color:var(--ink-3);margin-left:2px">${persons.slice(0,2).map(p=>p.split(' ')[0]).join(', ')}${v.persons.size > 2 ? ' +' + (v.persons.size-2) : ''}</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateBadges() {
+  const pending = state.tasks.filter(t => t.Durum === 'Bekliyor').length;
+  const badge = document.getElementById('badge-tasks');
+  badge.textContent = pending;
+  badge.style.display = pending ? 'inline' : 'none';
+}
+
+// ══════════════════════════════════════════════════════════════
+// SUBMIT MEETING
+// ══════════════════════════════════════════════════════════════
+async function submitMeeting() {
+  const title = document.getElementById('meeting-title').value.trim();
+  const notes = document.getElementById('meeting-notes').value.trim();
+  const date  = document.getElementById('meeting-date').value || new Date().toISOString().split('T')[0];
+
+  if (!notes) { showToast('Lütfen toplantı notunu girin', 'alert'); return; }
+
+  // If webhook is not configured, use demo mode
+  if (!CONFIG.webhookUrl || CONFIG.webhookUrl.includes('YOUR_')) {
+    simulateAIResponse(title || 'Demo Toplantı', notes, date);
+    return;
+  }
+
+  showLoading('Yapay Zeka İşliyor', 'Gemini ile toplantı notu analiz ediliyor...');
+
+  try {
+    const res = await fetch(CONFIG.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ meeting_title: title, meeting_notes: notes, meeting_date: date }),
+    });
+
+    if (!res.ok) throw new Error('Webhook yanıt vermedi: ' + res.status);
+    const data = await res.json();
+    hideLoading();
+    showAIPreview(data, title || 'Toplantı');
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast('Webhook bağlantı hatası — Demo moduna geçildi', 'alert');
+    simulateAIResponse(title || 'Demo Toplantı', notes, date);
+  }
+}
+
+function simulateAIResponse(title, notes, date) {
+  // Parse names and tasks from the note as a simple demo
+  showLoading('Demo Modu', 'Yapay zeka simülasyonu çalışıyor...');
+  setTimeout(() => {
+    hideLoading();
+    const demoResult = {
+      meeting_title: title,
+      meeting_date: date,
+      follow_up_date: addDays(date, 7),
+      action_items: [
+        { person: 'Ahmet', task: 'Demo görev 1 — notunuzdan çıkarıldı', deadline: addDays(date, 7), priority: 'Yüksek' },
+        { person: 'Zeynep', task: 'Demo görev 2 — gerçek webhook ile AI çıkarımı yapılır', deadline: addDays(date, 14), priority: 'Orta' },
+      ]
+    };
+    showAIPreview(demoResult, title);
+    showToast('Demo mod: Gerçek kullanımda Gemini analiz eder', 'alert');
+  }, 1800);
+}
+
+function showAIPreview(data, meetingName) {
+  state.pendingAIResult = data;
+  document.getElementById('submit-info-card').style.display = 'none';
+  document.getElementById('ai-preview-section').style.display = 'block';
+  setText('preview-meeting-name', meetingName);
+
+  const items = data.action_items || [];
+  const today = new Date().toISOString().split('T')[0];
+  const body = document.getElementById('ai-preview-body');
+
+  if (!items.length) {
+    body.innerHTML = '<div style="color:var(--ink-3);font-size:13px;padding:8px 0">Görev bulunamadı. Notun daha detaylı olması gerekebilir.</div>';
+    return;
+  }
+  body.innerHTML = items.map((item, i) => `
+    <div class="preview-task" id="preview-item-${i}">
+      <span class="badge ${priorityBadge(item.priority)}">${item.priority||'Orta'}</span>
+      <div style="flex:1">
+        <div class="preview-task-name">${esc(item.task||'')}</div>
+        <div class="preview-task-who">${esc(item.person||'Belirsiz')}</div>
+      </div>
+      <div class="preview-task-date" style="color:${item.deadline && item.deadline < today ? 'var(--red)' : 'var(--ink-3)'}">
+        ${formatDate(item.deadline)}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function confirmTasks() {
+  if (!state.pendingAIResult) return;
+
+  showLoading('Kaydediliyor', 'Google Sheets, Gmail ve Calendar güncelleniyor...');
+
+  // If webhook is not configured, simulate
+  if (!CONFIG.webhookUrl || CONFIG.webhookUrl.includes('YOUR_')) {
+    setTimeout(() => {
+      hideLoading();
+      // Add to local state for demo
+      const items = state.pendingAIResult.action_items || [];
+      for (const item of items) {
+        state.tasks.push({
+          ID: Date.now() + Math.random(),
+          Toplantı_Adı: state.pendingAIResult.meeting_title,
+          Sorumlu: item.person,
+          Görev: item.task,
+          Deadline: item.deadline,
+          Öncelik: item.priority,
+          Durum: 'Bekliyor',
+          Tarih: state.pendingAIResult.meeting_date,
+        });
+      }
+      updateAllViews();
+      resetSubmitForm();
+      showToast('Görevler kaydedildi ✓ (Demo mod)', 'check');
+    }, 1500);
+    return;
+  }
+
+  try {
+    await fetch(CONFIG.webhookUrl + '/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...state.pendingAIResult, action: 'confirm' }),
+    });
+  } catch(e) { /* best effort */ }
+
+  hideLoading();
+  await fetchTasks();
+  resetSubmitForm();
+  showToast('Görevler kaydedildi, e-postalar gönderildi ✓', 'check');
+}
+
+function editTasks() {
+  showToast('Düzenleme: Görevler tablosundan güncelleyebilirsiniz', 'alert');
+  navigate('tasks');
+}
+
+function rejectTasks() {
+  state.pendingAIResult = null;
+  resetSubmitForm();
+  showToast('İşlem iptal edildi', 'alert');
+}
+
+function resetSubmitForm() {
+  document.getElementById('meeting-title').value = '';
+  document.getElementById('meeting-notes').value = '';
+  document.getElementById('meeting-date').value = '';
+  document.getElementById('ai-preview-section').style.display = 'none';
+  document.getElementById('submit-info-card').style.display = 'block';
+  state.pendingAIResult = null;
+}
+
+// ══════════════════════════════════════════════════════════════
+// TASKS TABLE
+// ══════════════════════════════════════════════════════════════
+function renderTaskTable() {
+  const search    = (document.getElementById('task-search')?.value || '').toLowerCase();
+  const status    = document.getElementById('filter-status')?.value || '';
+  const priority  = document.getElementById('filter-priority')?.value || '';
+  const person    = document.getElementById('filter-person')?.value || '';
+
+  // Update person filter options
+  const personSel = document.getElementById('filter-person');
+  const allPersons = [...new Set(state.tasks.map(t => t.Sorumlu).filter(Boolean))].sort();
+  const curVal = personSel?.value;
+  if (personSel) {
+    personSel.innerHTML = '<option value="">Herkes</option>' +
+      allPersons.map(p => `<option value="${esc(p)}" ${p===curVal?'selected':''}>${esc(p)}</option>`).join('');
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const filtered = state.tasks.filter(t => {
+    if (status && t.Durum !== status) return false;
+    if (priority && t.Öncelik !== priority) return false;
+    if (person && t.Sorumlu !== person) return false;
+    if (search && !(
+      (t.Görev||'').toLowerCase().includes(search) ||
+      (t.Sorumlu||'').toLowerCase().includes(search) ||
+      (t.Toplantı_Adı||'').toLowerCase().includes(search)
+    )) return false;
+    return true;
+  });
+
+  setText('task-count-label', filtered.length + ' görev gösteriliyor');
+
+  const body = document.getElementById('task-table-body');
+  if (!filtered.length) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-4)">Görev bulunamadı</td></tr>';
+    return;
+  }
+
+  body.innerHTML = filtered.map(t => {
+    const late = t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı';
+    const sb = statusBadge(t.Durum);
+    const pb = priorityBadge(t.Öncelik);
+    return `<tr>
+      <td><span class="badge ${pb}">${t.Öncelik||'—'}</span></td>
+      <td class="task-name">${esc(t.Görev||'')}</td>
+      <td>
+        <div class="person-chip">
+          ${avatar(t.Sorumlu)}
+          <span>${esc((t.Sorumlu||'—').split(' ')[0])}</span>
+        </div>
+      </td>
+      <td style="font-size:12px;color:${late?'var(--red)':'var(--ink-3)'}">
+        ${late?'⚠ ':''}${formatDate(t.Deadline)}
+      </td>
+      <td>
+        <select onchange="updateTaskStatus('${t.ID}',this.value)"
+          style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surf);color:var(--ink-2);cursor:pointer">
+          ${['Bekliyor','Devam Ediyor','Tamamlandı'].map(s =>
+            `<option ${s===t.Durum?'selected':''}>${s}</option>`
+          ).join('')}
+        </select>
+      </td>
+      <td style="font-size:12px;color:var(--ink-3)">${esc(t.Toplantı_Adı||'—')}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function updateTaskStatus(id, newStatus) {
+  const task = state.tasks.find(t => String(t.ID) === String(id));
+  if (task) task.Durum = newStatus;
+  updateAllViews();
+
+  // Send to n8n if configured
+  if (CONFIG.updateWebhookUrl && !CONFIG.updateWebhookUrl.includes('YOUR_')) {
+    try {
+      await fetch(CONFIG.updateWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: newStatus }),
+      });
+    } catch(e) { console.warn('Status update webhook error:', e); }
+  }
+  showToast('Durum güncellendi ✓', 'check');
+}
+
+// ══════════════════════════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════════════════════════
+const MONTHS_TR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function renderCalendar() {
+  const year = state.calYear, month = state.calMonth;
+  setText('cal-month-label', MONTHS_TR[month] + ' ' + year);
+
+  const firstDay = new Date(year, month, 1);
+  // Monday-first: Sunday=0 becomes 6
+  let startDow = firstDay.getDay();
+  startDow = startDow === 0 ? 6 : startDow - 1;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev  = new Date(year, month, 0).getDate();
+
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  // Collect deadline dates
+  const deadlineDates = new Set(
+    state.tasks
+      .filter(t => t.Deadline && t.Durum !== 'Tamamlandı')
+      .map(t => t.Deadline)
+  );
+
+  let cells = '';
+  // Previous month days
+  for (let i = startDow - 1; i >= 0; i--) {
+    cells += `<div class="cal-cell other-month">${daysInPrev - i}</div>`;
+  }
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === todayStr;
+    const hasEvent = deadlineDates.has(dateStr);
+    cells += `<div class="cal-cell${isToday?' today':''}${hasEvent?' has-event':''}" onclick="calSelectDate('${dateStr}')">${d}</div>`;
+  }
+  // Next month
+  const total = startDow + daysInMonth;
+  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let d = 1; d <= remaining; d++) {
+    cells += `<div class="cal-cell other-month">${d}</div>`;
+  }
+
+  document.getElementById('cal-cells').innerHTML = cells;
+  renderCalEvents(null);
+}
+
+function calSelectDate(dateStr) {
+  setText('cal-selected-label', formatDate(dateStr) + ' — Görevler');
+  renderCalEvents(dateStr);
+}
+
+function renderCalEvents(dateStr) {
+  const tasks = dateStr
+    ? state.tasks.filter(t => t.Deadline === dateStr && t.Durum !== 'Tamamlandı')
+    : state.tasks.filter(t => t.Deadline && t.Durum !== 'Tamamlandı')
+        .sort((a,b) => (a.Deadline||'') < (b.Deadline||'') ? -1 : 1)
+        .slice(0, 8);
+
+  const body = document.getElementById('cal-event-list');
+  if (!tasks.length) {
+    body.innerHTML = `<tr><td colspan="2" style="text-align:center;padding:32px;color:var(--ink-4)">
+      ${dateStr ? 'Bu tarihte deadline yok' : 'Bekleyen görev yok ✓'}
+    </td></tr>`;
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  body.innerHTML = tasks.map(t => {
+    const late = t.Deadline && t.Deadline < today;
+    return `<tr>
+      <td>
+        <div style="font-size:13px;font-weight:500;color:var(--ink)">${esc(t.Görev||'')}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          ${avatar(t.Sorumlu)}
+          <span style="font-size:11px;color:var(--ink-3)">${esc(t.Sorumlu||'')}</span>
+        </div>
+      </td>
+      <td style="text-align:right">
+        <div style="font-size:12px;color:${late?'var(--red)':'var(--ink-3)'}">
+          ${late?'⚠ ':''}${formatDate(t.Deadline)}
+        </div>
+        <span class="badge ${priorityBadge(t.Öncelik)}" style="margin-top:4px;display:inline-flex">${t.Öncelik||'—'}</span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function calPrev() {
+  state.calMonth--;
+  if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+  renderCalendar();
+}
+function calNext() {
+  state.calMonth++;
+  if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+  renderCalendar();
+}
+
+// ══════════════════════════════════════════════════════════════
+// NOTES
+// ══════════════════════════════════════════════════════════════
+function renderNoteList() {
+  const byMeeting = {};
+  for (const t of state.tasks) {
+    const m = t.Toplantı_Adı || 'Bilinmiyor';
+    if (!byMeeting[m]) byMeeting[m] = { tasks:[], date: t.Tarih||'' };
+    byMeeting[m].tasks.push(t);
+  }
+  const meetings = Object.entries(byMeeting).sort((a,b) => (b[1].date||'') > (a[1].date||'') ? 1:-1);
+
+  const el = document.getElementById('note-list');
+  if (!meetings.length) {
+    el.innerHTML = '<div style="color:var(--ink-4);font-size:13px;padding:20px">Henüz toplantı yok</div>';
+    return;
+  }
+  el.innerHTML = meetings.map(([name, v]) => {
+    const persons = [...new Set(v.tasks.map(t=>t.Sorumlu).filter(Boolean))];
+    const done = v.tasks.filter(t=>t.Durum==='Tamamlandı').length;
+    const sel = state.selectedNote === name;
+    return `<div class="note-item${sel?' selected':''}" onclick="selectNote('${esc(name)}')">
+      <div class="note-title">${esc(name)}</div>
+      <div class="note-meta">${formatDate(v.date)} · ${v.tasks.length} görev · ${done} tamamlandı</div>
+      <div class="note-excerpt">${persons.join(', ')}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectNote(name) {
+  state.selectedNote = name;
+  renderNoteList();
+
+  const tasks = state.tasks.filter(t => t.Toplantı_Adı === name);
+  const done = tasks.filter(t=>t.Durum==='Tamamlandı').length;
+  const date = tasks[0]?.Tarih || '';
+
+  const detail = document.getElementById('note-detail');
+  detail.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${esc(name)}</span>
+        <span class="badge badge-teal">${tasks.length} görev</span>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:var(--ink-3)">
+          <span>📅 ${formatDate(date)}</span>
+          <span>✓ ${done}/${tasks.length} tamamlandı</span>
+        </div>
+        <div class="prog-bar-wrap" style="margin-bottom:20px">
+          <div class="prog-bar" style="width:${tasks.length ? Math.round(done/tasks.length*100) : 0}%"></div>
+        </div>
+        <div class="card-title" style="margin-bottom:10px">Görevler</div>
+        ${tasks.map(t => `
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+            <span class="badge ${priorityBadge(t.Öncelik)}">${t.Öncelik||'—'}</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500;color:var(--ink)">${esc(t.Görev||'')}</div>
+              <div style="font-size:11px;color:var(--ink-3);margin-top:2px">${esc(t.Sorumlu||'')} · ${formatDate(t.Deadline)}</div>
+            </div>
+            <span class="badge ${statusBadge(t.Durum)}">${t.Durum||'—'}</span>
+          </div>
+        `).join('')}
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn btn-ghost btn-sm" onclick="navigate('tasks')">Görevleri Düzenle →</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════════════
+function priorityBadge(p) {
+  if (!p) return 'badge-low';
+  p = p.toLowerCase();
+  if (p.includes('yük')) return 'badge-high';
+  if (p.includes('orta') || p.includes('med')) return 'badge-med';
+  return 'badge-low';
+}
+function statusBadge(s) {
+  if (!s) return 'badge-wait';
+  if (s === 'Tamamlandı') return 'badge-done';
+  if (s === 'Devam Ediyor') return 'badge-wip';
+  return 'badge-wait';
+}
+function formatDate(d) {
+  if (!d) return '—';
+  try {
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('tr-TR', { day:'numeric', month:'short', year:'numeric' });
+  } catch { return d; }
+}
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function showLoading(title, sub) {
+  setText('loading-text', title);
+  setText('loading-sub', sub);
+  document.getElementById('loading').classList.add('visible');
+}
+function hideLoading() {
+  document.getElementById('loading').classList.remove('visible');
+}
+
+let toastTimer;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  const icon = t.querySelector('.toast-icon');
+  setText('toast-msg', msg);
+  icon.innerHTML = type === 'check'
+    ? '<use href="#ico-check"/>'
+    : type === 'alert'
+    ? '<use href="#ico-alert"/>'
+    : '<use href="#ico-refresh"/>';
+  t.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('visible'), 3000);
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+document.getElementById('meeting-date').value = new Date().toISOString().split('T')[0];
+fetchTasks();
+
+// Auto-refresh
+setInterval(fetchTasks, CONFIG.refreshInterval);
+</script>
+</body>
+</html>
