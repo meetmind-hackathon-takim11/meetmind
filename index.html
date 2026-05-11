@@ -605,7 +605,7 @@ const CONFIG = {
         <div class="approval-card" id="approval-panel" style="display:none">
           <div class="approval-header">
             <div class="approval-pulse"></div>
-            <span style="font-size:13px;font-weight:600;color:#92400E">⏳ Onay Bekliyor</span>
+            <span style="font-size:13px;font-weight:600;color:#92400E">&#9203; Onay Bekliyor</span>
             <span style="font-size:12px;color:#92400E;margin-left:4px" id="approval-meeting-label"></span>
             <span style="margin-left:auto;font-size:11px;color:#B45309">AI görevleri çıkardı — gözden geçirin</span>
           </div>
@@ -1032,7 +1032,7 @@ const CONFIG = {
                   </div>
                   <div style="width:2px;height:16px;background:var(--border);margin-left:15px"></div>
                   <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-                    <div style="width:32px;height:32px;border-radius:50%;background:var(--blueLight,#DBEAFE);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#DBEAFE">
+                    <div style="width:32px;height:32px;border-radius:50%;background:#DBEAFE;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                       <span style="font-size:11px;font-weight:600;color:#1E40AF">AI</span>
                     </div>
                     <div style="font-size:13px;color:var(--ink-2)"><strong>Whisper API</strong> sesi metne çevirir</div>
@@ -1046,14 +1046,14 @@ const CONFIG = {
                   </div>
                   <div style="width:2px;height:16px;background:var(--border);margin-left:15px"></div>
                   <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-                    <div style="width:32px;height:32px;border-radius:50%;background:var(--amberLight,#FEF3C7);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <div style="width:32px;height:32px;border-radius:50%;background:#FEF3C7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                       <svg style="width:14px;height:14px;fill:none;stroke:#B45309;stroke-width:2"><use href="#ico-shield"/></svg>
                     </div>
                     <div style="font-size:13px;color:var(--ink-2)"><strong>Onay mesajı</strong> size gelir (Human-in-the-Loop)</div>
                   </div>
                   <div style="width:2px;height:16px;background:var(--border);margin-left:15px"></div>
                   <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-                    <div style="width:32px;height:32px;border-radius:50%;background:var(--greenLight,#DCFCE7);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <div style="width:32px;height:32px;border-radius:50%;background:#DCFCE7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                       <svg style="width:14px;height:14px;fill:none;stroke:#166534;stroke-width:2.5"><use href="#ico-check"/></svg>
                     </div>
                     <div style="font-size:13px;color:var(--ink-2)"><strong>Onaylanınca</strong> Sheets + Gmail + Calendar güncellenir</div>
@@ -1089,7 +1089,7 @@ const CONFIG = {
 // ══════════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════════
-let state = {
+var state = {
   tasks: [],
   meetings: [],
   currentScreen: 'dashboard',
@@ -1102,23 +1102,39 @@ let state = {
 };
 
 // Avatar colors
-const AVATAR_COLORS = ['#0F766E','#1D4ED8','#7C3AED','#BE185D','#B45309','#0369A1','#065F46'];
+var AVATAR_COLORS = ['#0F766E','#1D4ED8','#7C3AED','#BE185D','#B45309','#0369A1','#065F46'];
+
 function avatarColor(name) {
-  let h = 0;
-  for (let c of (name||'')) h = (h*31 + c.charCodeAt(0)) & 0xFFFF;
+  var h = 0;
+  var s = name || '';
+  for (var i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) & 0xFFFF;
+  }
   return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
+
 function initials(name) {
-  return (name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  return (name || '?').split(' ').map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase();
 }
+
 function avatar(name) {
-  return `<div class="avatar" style="background:${avatarColor(name)}">${initials(name)}</div>`;
+  return '<div class="avatar" style="background:' + avatarColor(name) + '">' + initials(name) + '</div>';
+}
+
+// ── FIX 1: esc() now also escapes single quotes so onclick attributes are safe ──
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ══════════════════════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════════════════════
-const SCREEN_META = {
+var SCREEN_META = {
   dashboard: { title:'Dashboard', sub:'Genel bakış ve özet' },
   submit:    { title:'Toplantı Gönder', sub:'Notu yapıştırın, AI işlesin' },
   tasks:     { title:'Görevler', sub:'Tüm görevler ve durumları' },
@@ -1129,14 +1145,16 @@ const SCREEN_META = {
 
 function navigate(screen) {
   state.currentScreen = screen;
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
   document.getElementById('screen-' + screen).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => {
-    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + screen + "'"))
+  document.querySelectorAll('.nav-item').forEach(function(n) {
+    var attr = n.getAttribute('onclick');
+    if (attr && attr.indexOf("'" + screen + "'") !== -1) {
       n.classList.add('active');
+    }
   });
-  const meta = SCREEN_META[screen] || {};
+  var meta = SCREEN_META[screen] || {};
   document.getElementById('topbar-title').textContent = meta.title || screen;
   document.getElementById('topbar-sub').textContent = meta.sub || '';
   if (screen === 'calendar') renderCalendar();
@@ -1147,47 +1165,53 @@ function navigate(screen) {
 // ══════════════════════════════════════════════════════════════
 // DATA FETCHING
 // ══════════════════════════════════════════════════════════════
-async function fetchTasks() {
-  // Try SheetDB first, then fall back to mock data
-  if (CONFIG.sheetDbUrl && !CONFIG.sheetDbUrl.includes('YOUR_')) {
-    try {
-      const res = await fetch(CONFIG.sheetDbUrl + '?sheet=Log');
-      const data = await res.json();
-      state.tasks = Array.isArray(data) ? data : [];
-    } catch (e) {
-      console.warn('SheetDB error, using demo data:', e);
-      state.tasks = getDemoTasks();
-    }
+function fetchTasks() {
+  if (CONFIG.sheetDbUrl && CONFIG.sheetDbUrl.indexOf('YOUR_') === -1) {
+    return fetch(CONFIG.sheetDbUrl + '?sheet=Log')
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        state.tasks = Array.isArray(data) ? data : [];
+        state.lastRefresh = new Date();
+        updateAllViews();
+      })
+      .catch(function(e){
+        console.warn('SheetDB error, using demo data:', e);
+        state.tasks = getDemoTasks();
+        state.lastRefresh = new Date();
+        updateAllViews();
+      });
   } else {
     state.tasks = getDemoTasks();
+    state.lastRefresh = new Date();
+    updateAllViews();
+    return Promise.resolve();
   }
-  state.lastRefresh = new Date();
-  updateAllViews();
 }
 
 function getDemoTasks() {
-  const today = new Date();
-  const d = (offset) => {
-    const dt = new Date(today);
+  var today = new Date();
+  function d(offset) {
+    var dt = new Date(today);
     dt.setDate(dt.getDate() + offset);
     return dt.toISOString().split('T')[0];
-  };
+  }
   return [
-    { ID:'1', Toplantı_Adı:'Q2 Sprint Review',    Sorumlu:'Ahmet Kaya',  Görev:'API entegrasyonunu tamamla',   Deadline:d(4),   Öncelik:'Yüksek', Durum:'Bekliyor',     Tarih:d(-2) },
-    { ID:'2', Toplantı_Adı:'Q2 Sprint Review',    Sorumlu:'Zeynep Aydın',Görev:'Kullanıcı testleri',           Deadline:d(9),   Öncelik:'Yüksek', Durum:'Devam Ediyor', Tarih:d(-2) },
-    { ID:'3', Toplantı_Adı:'Q2 Sprint Review',    Sorumlu:'Can Demir',   Görev:'Teknik doküman hazırla',       Deadline:d(21),  Öncelik:'Düşük',  Durum:'Bekliyor',     Tarih:d(-2) },
-    { ID:'4', Toplantı_Adı:'Müşteri Senkronizasyonu', Sorumlu:'Zeynep Aydın',Görev:'Müşteri geri bildirim raporu', Deadline:d(6),  Öncelik:'Orta',   Durum:'Bekliyor',     Tarih:d(-4) },
-    { ID:'5', Toplantı_Adı:'Müşteri Senkronizasyonu', Sorumlu:'Ahmet Kaya',  Görev:'Fiyatlandırma teklifini güncelle', Deadline:d(-1), Öncelik:'Yüksek', Durum:'Bekliyor', Tarih:d(-4) },
-    { ID:'6', Toplantı_Adı:'Haftalık Standart',   Sorumlu:'Can Demir',   Görev:'Haftalık raporu gönder',       Deadline:d(2),   Öncelik:'Orta',   Durum:'Tamamlandı',   Tarih:d(-6) },
-    { ID:'7', Toplantı_Adı:'Haftalık Standart',   Sorumlu:'Ahmet Kaya',  Görev:'Sunumu düzenle',               Deadline:d(3),   Öncelik:'Orta',   Durum:'Tamamlandı',   Tarih:d(-6) },
-    { ID:'8', Toplantı_Adı:'Ürün Yol Haritası',   Sorumlu:'Zeynep Aydın',Görev:'Q3 özellik listesi oluştur',  Deadline:d(14),  Öncelik:'Orta',   Durum:'Bekliyor',     Tarih:d(-7) },
+    { ID:'1', Toplantı_Adı:'Q2 Sprint Review',        Sorumlu:'Ahmet Kaya',   Görev:'API entegrasyonunu tamamla',          Deadline:d(4),  Öncelik:'Yüksek', Durum:'Bekliyor',     Tarih:d(-2) },
+    { ID:'2', Toplantı_Adı:'Q2 Sprint Review',        Sorumlu:'Zeynep Aydın', Görev:'Kullanıcı testleri',                  Deadline:d(9),  Öncelik:'Yüksek', Durum:'Devam Ediyor', Tarih:d(-2) },
+    { ID:'3', Toplantı_Adı:'Q2 Sprint Review',        Sorumlu:'Can Demir',    Görev:'Teknik doküman hazırla',              Deadline:d(21), Öncelik:'Düşük',  Durum:'Bekliyor',     Tarih:d(-2) },
+    { ID:'4', Toplantı_Adı:'Müşteri Senkronizasyonu', Sorumlu:'Zeynep Aydın', Görev:'Müşteri geri bildirim raporu',        Deadline:d(6),  Öncelik:'Orta',   Durum:'Bekliyor',     Tarih:d(-4) },
+    { ID:'5', Toplantı_Adı:'Müşteri Senkronizasyonu', Sorumlu:'Ahmet Kaya',   Görev:'Fiyatlandırma teklifini güncelle',    Deadline:d(-1), Öncelik:'Yüksek', Durum:'Bekliyor',     Tarih:d(-4) },
+    { ID:'6', Toplantı_Adı:'Haftalık Standart',       Sorumlu:'Can Demir',    Görev:'Haftalık raporu gönder',              Deadline:d(2),  Öncelik:'Orta',   Durum:'Tamamlandı',   Tarih:d(-6) },
+    { ID:'7', Toplantı_Adı:'Haftalık Standart',       Sorumlu:'Ahmet Kaya',   Görev:'Sunumu düzenle',                      Deadline:d(3),  Öncelik:'Orta',   Durum:'Tamamlandı',   Tarih:d(-6) },
+    { ID:'8', Toplantı_Adı:'Ürün Yol Haritası',       Sorumlu:'Zeynep Aydın', Görev:'Q3 özellik listesi oluştur',          Deadline:d(14), Öncelik:'Orta',   Durum:'Bekliyor',     Tarih:d(-7) },
   ];
 }
 
-async function refreshData() {
+function refreshData() {
   showToast('Veriler güncelleniyor...', 'refresh');
-  await fetchTasks();
-  showToast('Veriler güncellendi ✓', 'check');
+  fetchTasks().then(function(){
+    showToast('Veriler güncellendi ✓', 'check');
+  });
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1207,87 +1231,90 @@ function updateAllViews() {
 }
 
 function updateKPIs() {
-  const tasks = state.tasks;
-  const total  = tasks.length;
-  const done   = tasks.filter(t => t.Durum === 'Tamamlandı').length;
-  const wait   = tasks.filter(t => t.Durum === 'Bekliyor').length;
-  const today  = new Date().toISOString().split('T')[0];
-  const late   = tasks.filter(t => t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı').length;
-  const pct    = total ? Math.round(done/total*100) : 0;
-  setText('kpi-total', total);
-  setText('kpi-done', done);
-  setText('kpi-wait', wait);
-  setText('kpi-late', late);
+  var tasks  = state.tasks;
+  var total  = tasks.length;
+  var done   = tasks.filter(function(t){ return t.Durum === 'Tamamlandı'; }).length;
+  var wait   = tasks.filter(function(t){ return t.Durum === 'Bekliyor'; }).length;
+  var today  = new Date().toISOString().split('T')[0];
+  var late   = tasks.filter(function(t){ return t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı'; }).length;
+  var pct    = total ? Math.round(done / total * 100) : 0;
+  setText('kpi-total',     total);
+  setText('kpi-done',      done);
+  setText('kpi-wait',      wait);
+  setText('kpi-late',      late);
   setText('kpi-total-sub', total + ' kayıtlı görev');
-  setText('kpi-done-sub', pct + '% tamamlanma oranı');
-  setText('kpi-wait-sub', wait + ' görev aksiyon bekliyor');
-  setText('kpi-late-sub', late > 0 ? 'Dikkat gerekiyor!' : 'Gecikme yok ✓');
+  setText('kpi-done-sub',  pct + '% tamamlanma oranı');
+  setText('kpi-wait-sub',  wait + ' görev aksiyon bekliyor');
+  setText('kpi-late-sub',  late > 0 ? 'Dikkat gerekiyor!' : 'Gecikme yok ✓');
 }
 
 // ── RISK METER ───────────────────────────────────────────────
 function updateRiskMeter() {
-  const tasks = state.tasks;
+  var tasks = state.tasks;
   if (!tasks.length) return;
-  const today = new Date().toISOString().split('T')[0];
-  const total  = tasks.length;
-  const late   = tasks.filter(t => t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı').length;
-  const high   = tasks.filter(t => t.Öncelik === 'Yüksek' && t.Durum !== 'Tamamlandı').length;
-  const wait   = tasks.filter(t => t.Durum === 'Bekliyor').length;
-  const done   = tasks.filter(t => t.Durum === 'Tamamlandı').length;
+  var today  = new Date().toISOString().split('T')[0];
+  var total  = tasks.length;
+  var late   = tasks.filter(function(t){ return t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı'; }).length;
+  var high   = tasks.filter(function(t){ return t.Öncelik === 'Yüksek' && t.Durum !== 'Tamamlandı'; }).length;
+  var wait   = tasks.filter(function(t){ return t.Durum === 'Bekliyor'; }).length;
+  var done   = tasks.filter(function(t){ return t.Durum === 'Tamamlandı'; }).length;
 
-  // Weighted score 0–100
-  const lateScore    = Math.min((late / Math.max(total,1)) * 40, 40);
-  const highScore    = Math.min((high / Math.max(total,1)) * 30, 30);
-  const waitScore    = Math.min((wait / Math.max(total,1)) * 20, 20);
-  const doneBonus    = Math.min((done / Math.max(total,1)) * 10, 10);
-  const score = Math.round(lateScore + highScore + waitScore - doneBonus);
-  const clamped = Math.max(0, Math.min(100, score));
+  var lateScore = Math.min((late / Math.max(total,1)) * 40, 40);
+  var highScore = Math.min((high / Math.max(total,1)) * 30, 30);
+  var waitScore = Math.min((wait / Math.max(total,1)) * 20, 20);
+  var doneBonus = Math.min((done / Math.max(total,1)) * 10, 10);
+  var score     = Math.round(lateScore + highScore + waitScore - doneBonus);
+  var clamped   = Math.max(0, Math.min(100, score));
 
-  // Needle: -90deg = low (left), 0deg = mid, +90deg = high (right)
-  const deg = -90 + (clamped / 100) * 180;
-  const needle = document.getElementById('risk-needle');
-  if (needle) needle.style.transform = `rotate(${deg}deg)`;
+  var deg    = -90 + (clamped / 100) * 180;
+  var needle = document.getElementById('risk-needle');
+  if (needle) needle.style.transform = 'rotate(' + deg + 'deg)';
 
   setText('risk-score', clamped);
-  let label, color;
-  if (clamped < 34)      { label = 'Düşük Risk';   color = 'var(--green)'; }
-  else if (clamped < 67) { label = 'Orta Risk';    color = 'var(--amber)'; }
-  else                   { label = 'Yüksek Risk';  color = 'var(--red)'; }
-  const lbl = document.getElementById('risk-label');
+  var label, color;
+  if (clamped < 34)      { label = 'Düşük Risk';  color = 'var(--green)'; }
+  else if (clamped < 67) { label = 'Orta Risk';   color = 'var(--amber)'; }
+  else                   { label = 'Yüksek Risk'; color = 'var(--red)'; }
+  var lbl = document.getElementById('risk-label');
   if (lbl) { lbl.textContent = label; lbl.style.color = color; }
-  setText('risk-breakdown', `${late} geciken · ${high} yüksek öncelik · ${wait} bekleyen`);
+  setText('risk-breakdown', late + ' geciken · ' + high + ' yüksek öncelik · ' + wait + ' bekleyen');
 }
 
 // ── MOOD / SENTIMENT BARS ────────────────────────────────────
 function updateMoodBars() {
-  const tasks = state.tasks;
+  var tasks = state.tasks;
   if (!tasks.length) return;
-  const today = new Date().toISOString().split('T')[0];
-  const total  = tasks.length;
-  const high   = tasks.filter(t => t.Öncelik === 'Yüksek').length;
-  const late   = tasks.filter(t => t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı').length;
-  const done   = tasks.filter(t => t.Durum === 'Tamamlandı').length;
+  var today  = new Date().toISOString().split('T')[0];
+  var total  = tasks.length;
+  var high   = tasks.filter(function(t){ return t.Öncelik === 'Yüksek'; }).length;
+  var late   = tasks.filter(function(t){ return t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı'; }).length;
+  var done   = tasks.filter(function(t){ return t.Durum === 'Tamamlandı'; }).length;
 
-  // Scores 0–100
-  const urgency    = Math.min(Math.round((high / Math.max(total,1)) * 100 + (late / Math.max(total,1)) * 100) / 2, 100);
-  const clarity    = Math.max(0, 100 - Math.round((late / Math.max(total,1)) * 80));
-  const persons    = new Set(tasks.map(t=>t.Sorumlu).filter(Boolean)).size;
-  const maxPerPerson = persons ? Math.max(...[...new Set(tasks.map(t=>t.Sorumlu).filter(Boolean))].map(p=>tasks.filter(t=>t.Sorumlu===p).length)) : 0;
-  const balance    = persons > 1 ? Math.max(0, 100 - Math.round(((maxPerPerson / total) - (1/persons)) / (1 - 1/persons) * 100)) : 50;
-  const completion = total ? Math.round(done / total * 100) : 0;
+  var urgency    = Math.min(Math.round(((high / Math.max(total,1)) * 100 + (late / Math.max(total,1)) * 100) / 2), 100);
+  var clarity    = Math.max(0, 100 - Math.round((late / Math.max(total,1)) * 80));
+  var personsArr = [];
+  tasks.forEach(function(t){ if (t.Sorumlu && personsArr.indexOf(t.Sorumlu) === -1) personsArr.push(t.Sorumlu); });
+  var persons    = personsArr.length;
+  var maxPerPerson = persons
+    ? Math.max.apply(null, personsArr.map(function(p){ return tasks.filter(function(t){ return t.Sorumlu === p; }).length; }))
+    : 0;
+  var balance    = persons > 1
+    ? Math.max(0, 100 - Math.round(((maxPerPerson / total) - (1 / persons)) / (1 - 1 / persons) * 100))
+    : 50;
+  var completion = total ? Math.round(done / total * 100) : 0;
 
-  const set = (id, val, valId) => {
-    const el = document.getElementById(id);
+  function setBar(id, val, valId) {
+    var el = document.getElementById(id);
     if (el) el.style.width = val + '%';
     if (valId) setText(valId, val + '%');
-  };
-  set('mood-urgency',   urgency,    'mood-urgency-val');
-  set('mood-clarity',   clarity,    'mood-clarity-val');
-  set('mood-balance',   balance,    'mood-balance-val');
-  set('mood-completion',completion, 'mood-completion-val');
+  }
+  setBar('mood-urgency',    urgency,    'mood-urgency-val');
+  setBar('mood-clarity',    clarity,    'mood-clarity-val');
+  setBar('mood-balance',    balance,    'mood-balance-val');
+  setBar('mood-completion', completion, 'mood-completion-val');
 
-  let summary;
-  if (urgency > 70)     summary = '⚠️ Yüksek aciliyet tespit edildi. Yüksek öncelikli görevlerin hızla ele alınması gerekiyor.';
+  var summary;
+  if (urgency > 70)      summary = '⚠️ Yüksek aciliyet tespit edildi. Yüksek öncelikli görevlerin hızla ele alınması gerekiyor.';
   else if (clarity < 40) summary = '🔍 Görevlerde netlik düşük — deadline belirsizlikleri ve gecikme riski var.';
   else if (balance < 40) summary = '⚖️ İş yükü dengesiz dağılmış. Bazı ekip üyeleri aşırı yüklü olabilir.';
   else if (completion > 60) summary = '✅ Tamamlanma oranı iyi. Ekip verimli çalışıyor, süreç sağlıklı görünüyor.';
@@ -1296,142 +1323,152 @@ function updateMoodBars() {
 }
 
 function updateDashUrgent() {
-  const today = new Date().toISOString().split('T')[0];
-  const urgent = state.tasks
-    .filter(t => t.Durum !== 'Tamamlandı')
-    .sort((a,b) => (a.Deadline||'9999') < (b.Deadline||'9999') ? -1 : 1)
+  var today  = new Date().toISOString().split('T')[0];
+  var urgent = state.tasks
+    .filter(function(t){ return t.Durum !== 'Tamamlandı'; })
+    .sort(function(a,b){ return (a.Deadline||'9999') < (b.Deadline||'9999') ? -1 : 1; })
     .slice(0, 5);
   setText('dash-urgent-count', urgent.length + ' görev');
-  const body = document.getElementById('dash-urgent-body');
+  var body = document.getElementById('dash-urgent-body');
   if (!urgent.length) {
     body.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--ink-4)">Bekleyen acil görev yok ✓</td></tr>';
     return;
   }
-  body.innerHTML = urgent.map(t => {
-    const late = t.Deadline && t.Deadline < today;
-    return `<tr>
-      <td><span class="badge ${priorityBadge(t.Öncelik)}">${t.Öncelik||'—'}</span></td>
-      <td class="task-name">${esc(t.Görev||'')}</td>
-      <td style="font-size:12px;color:${late?'var(--red)':'var(--ink-3)'}">
-        ${late?'⚠ ':''}${formatDate(t.Deadline)}
-      </td>
-    </tr>`;
+  body.innerHTML = urgent.map(function(t) {
+    var late = t.Deadline && t.Deadline < today;
+    return '<tr>' +
+      '<td><span class="badge ' + priorityBadge(t.Öncelik) + '">' + (t.Öncelik||'—') + '</span></td>' +
+      '<td class="task-name">' + esc(t.Görev||'') + '</td>' +
+      '<td style="font-size:12px;color:' + (late ? 'var(--red)' : 'var(--ink-3)') + '">' +
+        (late ? '⚠ ' : '') + formatDate(t.Deadline) +
+      '</td>' +
+    '</tr>';
   }).join('');
 }
 
 function updateDashPersons() {
-  const persons = {};
-  for (const t of state.tasks) {
-    const p = t.Sorumlu || 'Bilinmiyor';
+  var persons = {};
+  state.tasks.forEach(function(t) {
+    var p = t.Sorumlu || 'Bilinmiyor';
     if (!persons[p]) persons[p] = { total:0, done:0 };
     persons[p].total++;
     if (t.Durum === 'Tamamlandı') persons[p].done++;
-  }
-  const sorted = Object.entries(persons).sort((a,b) => b[1].total - a[1].total).slice(0,5);
-  const maxTotal = Math.max(...sorted.map(([,v]) => v.total), 1);
-  const el = document.getElementById('dash-persons');
+  });
+  var sorted   = Object.keys(persons)
+    .map(function(k){ return [k, persons[k]]; })
+    .sort(function(a,b){ return b[1].total - a[1].total; })
+    .slice(0, 5);
+  var maxTotal = sorted.length ? Math.max.apply(null, sorted.map(function(e){ return e[1].total; })) : 1;
+  var el = document.getElementById('dash-persons');
   if (!sorted.length) { el.innerHTML = '<div style="color:var(--ink-4);font-size:13px">Henüz görev yok</div>'; return; }
-  el.innerHTML = sorted.map(([name, v]) => {
-    const pct = Math.round(v.total / maxTotal * 100);
-    const donePct = Math.round(v.done / v.total * 100);
-    return `<div style="margin-bottom:14px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <div style="display:flex;align-items:center;gap:7px">
-          ${avatar(name)}
-          <span style="font-size:13px;font-weight:500;color:var(--ink)">${esc(name)}</span>
-        </div>
-        <span style="font-size:11px;color:var(--ink-3)">${v.done}/${v.total} · ${donePct}%</span>
-      </div>
-      <div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%"></div></div>
-    </div>`;
+  el.innerHTML = sorted.map(function(entry) {
+    var name = entry[0], v = entry[1];
+    var pct     = Math.round(v.total / maxTotal * 100);
+    var donePct = Math.round(v.done / v.total * 100);
+    return '<div style="margin-bottom:14px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+        '<div style="display:flex;align-items:center;gap:7px">' +
+          avatar(name) +
+          '<span style="font-size:13px;font-weight:500;color:var(--ink)">' + esc(name) + '</span>' +
+        '</div>' +
+        '<span style="font-size:11px;color:var(--ink-3)">' + v.done + '/' + v.total + ' · ' + donePct + '%</span>' +
+      '</div>' +
+      '<div class="prog-bar-wrap"><div class="prog-bar" style="width:' + pct + '%"></div></div>' +
+    '</div>';
   }).join('');
 }
 
 function updateDashMeetings() {
-  const byMeeting = {};
-  const today = new Date().toISOString().split('T')[0];
-  for (const t of state.tasks) {
-    const m = t.Toplantı_Adı || 'Bilinmiyor';
-    if (!byMeeting[m]) byMeeting[m] = { persons: new Set(), count: 0, date: t.Tarih||'', late: 0, high: 0 };
+  var byMeeting = {};
+  var today     = new Date().toISOString().split('T')[0];
+  state.tasks.forEach(function(t) {
+    var m = t.Toplantı_Adı || 'Bilinmiyor';
+    if (!byMeeting[m]) byMeeting[m] = { persons:[], count:0, date: t.Tarih||'', late:0, high:0 };
     byMeeting[m].count++;
-    if (t.Sorumlu) byMeeting[m].persons.add(t.Sorumlu);
+    if (t.Sorumlu && byMeeting[m].persons.indexOf(t.Sorumlu) === -1) byMeeting[m].persons.push(t.Sorumlu);
     if (t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı') byMeeting[m].late++;
     if (t.Öncelik === 'Yüksek' && t.Durum !== 'Tamamlandı') byMeeting[m].high++;
-  }
-  const meetings = Object.entries(byMeeting).sort((a,b)=>(b[1].date||'')>(a[1].date||'')?1:-1).slice(0,5);
-  const body = document.getElementById('dash-meetings-body');
+  });
+  var meetings = Object.keys(byMeeting)
+    .map(function(k){ return [k, byMeeting[k]]; })
+    .sort(function(a,b){ return (b[1].date||'') > (a[1].date||'') ? 1 : -1; })
+    .slice(0, 5);
+  var body = document.getElementById('dash-meetings-body');
   if (!meetings.length) {
     body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-4)">Henüz toplantı yok</td></tr>';
     return;
   }
-  body.innerHTML = meetings.map(([name, v]) => {
-    const riskScore = Math.min(100, Math.round((v.late / Math.max(v.count,1)) * 50 + (v.high / Math.max(v.count,1)) * 50));
-    let riskBadge;
+  body.innerHTML = meetings.map(function(entry) {
+    var name = entry[0], v = entry[1];
+    var riskScore = Math.min(100, Math.round((v.late / Math.max(v.count,1)) * 50 + (v.high / Math.max(v.count,1)) * 50));
+    var riskBadge;
     if (riskScore > 66)      riskBadge = '<span class="badge badge-high">Yüksek</span>';
     else if (riskScore > 33) riskBadge = '<span class="badge badge-med">Orta</span>';
     else                     riskBadge = '<span class="badge badge-done">Düşük</span>';
-    return `<tr>
-      <td class="task-name">${esc(name)}</td>
-      <td style="font-size:12px;color:var(--ink-3)">${formatDate(v.date)}</td>
-      <td><span class="badge badge-teal">${v.count} görev</span></td>
-      <td>${riskBadge}</td>
-    </tr>`;
+    return '<tr>' +
+      '<td class="task-name">' + esc(name) + '</td>' +
+      '<td style="font-size:12px;color:var(--ink-3)">' + formatDate(v.date) + '</td>' +
+      '<td><span class="badge badge-teal">' + v.count + ' görev</span></td>' +
+      '<td>' + riskBadge + '</td>' +
+    '</tr>';
   }).join('');
 }
 
 function updateBadges() {
-  const pending = state.tasks.filter(t => t.Durum === 'Bekliyor').length;
-  const badge = document.getElementById('badge-tasks');
-  badge.textContent = pending;
+  var pending = state.tasks.filter(function(t){ return t.Durum === 'Bekliyor'; }).length;
+  var badge   = document.getElementById('badge-tasks');
+  badge.textContent   = pending;
   badge.style.display = pending ? 'inline' : 'none';
 }
 
 // ── HUMAN-IN-THE-LOOP APPROVAL ───────────────────────────────
 function showApprovalPanel(data, meetingName) {
   state.pendingApproval = data;
-  const panel = document.getElementById('approval-panel');
-  const items = data.action_items || [];
+  var panel = document.getElementById('approval-panel');
+  var items = data.action_items || [];
   setText('approval-meeting-label', '— ' + (meetingName || data.meeting_title || ''));
-  const el = document.getElementById('approval-items');
+  var el = document.getElementById('approval-items');
   if (!items.length) { panel.style.display = 'none'; return; }
-  el.innerHTML = items.map(item => `
-    <div class="approval-task-row">
-      <span class="badge ${priorityBadge(item.priority)}">${item.priority||'Orta'}</span>
-      <span style="flex:1;font-weight:500">${esc(item.task||'')}</span>
-      <span style="font-size:12px;color:var(--ink-3)">${esc(item.person||'?')}</span>
-      <span style="font-size:12px;color:var(--ink-3);margin-left:10px">${formatDate(item.deadline)}</span>
-    </div>`).join('');
+  el.innerHTML = items.map(function(item) {
+    return '<div class="approval-task-row">' +
+      '<span class="badge ' + priorityBadge(item.priority) + '">' + (item.priority||'Orta') + '</span>' +
+      '<span style="flex:1;font-weight:500">' + esc(item.task||'') + '</span>' +
+      '<span style="font-size:12px;color:var(--ink-3)">' + esc(item.person||'?') + '</span>' +
+      '<span style="font-size:12px;color:var(--ink-3);margin-left:10px">' + formatDate(item.deadline) + '</span>' +
+    '</div>';
+  }).join('');
   panel.style.display = 'block';
   navigate('dashboard');
 }
 
-async function approveAll() {
+function approveAll() {
   if (!state.pendingApproval) return;
-  const data = state.pendingApproval;
-  const items = data.action_items || [];
-  for (const item of items) {
+  var data  = state.pendingApproval;
+  var items = data.action_items || [];
+  items.forEach(function(item) {
     state.tasks.push({
-      ID: Date.now() + Math.random(),
+      // FIX 2: Use a clean string ID so status-update lookups always match
+      ID:           String(Date.now()) + String(Math.floor(Math.random() * 10000)),
       Toplantı_Adı: data.meeting_title,
-      Sorumlu: item.person,
-      Görev: item.task,
-      Deadline: item.deadline,
-      Öncelik: item.priority,
-      Durum: 'Bekliyor',
-      Tarih: data.meeting_date,
+      Sorumlu:      item.person,
+      Görev:        item.task,
+      Deadline:     item.deadline,
+      Öncelik:      item.priority,
+      Durum:        'Bekliyor',
+      Tarih:        data.meeting_date,
     });
-  }
+  });
   dismissApproval();
   updateAllViews();
   showToast('Görevler onaylandı — e-postalar gönderiliyor... ✓', 'check');
-  // Fire to n8n if configured
-  if (CONFIG.webhookUrl && !CONFIG.webhookUrl.includes('YOUR_')) {
-    try {
-      await fetch(CONFIG.webhookUrl + '/confirm', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ ...data, action:'confirm' })
-      });
-    } catch(e) { console.warn('Confirm webhook error:', e); }
+  if (CONFIG.webhookUrl && CONFIG.webhookUrl.indexOf('YOUR_') === -1) {
+    // FIX 3: Avoid double-slash when webhookUrl already has a trailing slash
+    var confirmUrl = CONFIG.webhookUrl.replace(/\/$/, '') + '/confirm';
+    fetch(confirmUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({}, data, { action: 'confirm' }))
+    }).catch(function(e){ console.warn('Confirm webhook error:', e); });
   }
 }
 
@@ -1441,79 +1478,81 @@ function dismissApproval() {
 }
 
 // ── VOICE RECORDING ──────────────────────────────────────────
-let mediaRecorder = null;
-let audioChunks = [];
-let isRecording = false;
+var mediaRecorder = null;
+var audioChunks   = [];
+var isRecording   = false;
 
-async function toggleRecording() {
+function toggleRecording() {
   if (isRecording) {
     stopRecording();
   } else {
-    await startRecording();
+    startRecording();
   }
 }
 
-async function startRecording() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = processVoiceRecording;
-    mediaRecorder.start();
-    isRecording = true;
-    const btn = document.getElementById('voice-btn');
-    btn.classList.add('recording');
-    setText('voice-btn-label', 'Durdurmak için bas');
-    setText('voice-status', '🔴 Kayıt yapılıyor...');
-    setText('voice-transcript', 'Konuşun, bitince butona basın...');
-    document.getElementById('voice-wave').style.display = 'flex';
-    document.getElementById('voice-send-btn').style.display = 'none';
-    document.getElementById('voice-clear-btn').style.display = 'none';
-  } catch(e) {
-    showToast('Mikrofon erişimi reddedildi — tarayıcı iznini kontrol edin', 'alert');
-  }
+function startRecording() {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream) {
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks   = [];
+      mediaRecorder.ondataavailable = function(e){ audioChunks.push(e.data); };
+      mediaRecorder.onstop = processVoiceRecording;
+      mediaRecorder.start();
+      isRecording = true;
+      var btn = document.getElementById('voice-btn');
+      btn.classList.add('recording');
+      setText('voice-btn-label', 'Durdurmak için bas');
+      setText('voice-status',    '🔴 Kayıt yapılıyor...');
+      document.getElementById('voice-transcript').textContent = 'Konuşun, bitince butona basın...';
+      document.getElementById('voice-wave').style.display     = 'flex';
+      document.getElementById('voice-send-btn').style.display = 'none';
+      document.getElementById('voice-clear-btn').style.display = 'none';
+    })
+    .catch(function() {
+      showToast('Mikrofon erişimi reddedildi — tarayıcı iznini kontrol edin', 'alert');
+    });
 }
 
 function stopRecording() {
   if (mediaRecorder && isRecording) {
     mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    mediaRecorder.stream.getTracks().forEach(function(t){ t.stop(); });
     isRecording = false;
-    const btn = document.getElementById('voice-btn');
+    var btn = document.getElementById('voice-btn');
     btn.classList.remove('recording');
     setText('voice-btn-label', 'Kayıt Başlat');
-    setText('voice-status', 'İşleniyor...');
+    setText('voice-status',    'İşleniyor...');
     document.getElementById('voice-wave').style.display = 'none';
   }
 }
 
 function processVoiceRecording() {
-  // Browser SpeechRecognition fallback (free, no API key)
-  const blob = new Blob(audioChunks, { type: 'audio/webm' });
-  // In production: send blob to n8n → Whisper → transcript returned
-  // Demo: use Web Speech API live transcript
-  setText('voice-status', 'Ses kaydı alındı (' + Math.round(blob.size/1024) + ' KB)');
-  setText('voice-transcript', 'Ses kaydı alındı. Gerçek kullanımda n8n üzerinden Whisper API'ye gönderilir ve metin buraya döner. Demo modunda metni manuel olarak aşağı girebilirsiniz.');
-  document.getElementById('voice-send-btn').style.display = 'inline-flex';
+  var blob = new Blob(audioChunks, { type: 'audio/webm' });
+  setText('voice-status', 'Ses kaydı alındı (' + Math.round(blob.size / 1024) + ' KB)');
+  // FIX 4: Use textContent assignment (via setText) to avoid any HTML injection issues
+  setText('voice-transcript',
+    'Ses kaydı alındı. Gerçek kullanımda n8n üzerinden Whisper API\'ye gönderilir ve metin buraya döner. ' +
+    'Demo modunda metni manuel olarak aşağı girebilirsiniz.'
+  );
+  document.getElementById('voice-send-btn').style.display  = 'inline-flex';
   document.getElementById('voice-clear-btn').style.display = 'inline-flex';
 }
 
 function sendVoiceTranscript() {
-  const transcript = document.getElementById('voice-transcript').textContent;
-  const title = document.getElementById('voice-meeting-title').value.trim() || 'Sesli Not';
-  const date  = document.getElementById('voice-meeting-date').value || new Date().toISOString().split('T')[0];
+  var transcript = document.getElementById('voice-transcript').textContent;
+  var title      = (document.getElementById('voice-meeting-title').value || '').trim() || 'Sesli Not';
+  var date       = document.getElementById('voice-meeting-date').value || new Date().toISOString().split('T')[0];
   document.getElementById('meeting-title').value = title;
   document.getElementById('meeting-notes').value = transcript;
-  document.getElementById('meeting-date').value = date;
+  document.getElementById('meeting-date').value  = date;
   navigate('submit');
   showToast('Not submit ekranına aktarıldı — göndermeye hazır', 'check');
 }
 
 function clearVoice() {
   setText('voice-transcript', 'Konuşmanız burada görünecek...');
-  setText('voice-status', 'Mikrofona basarak konuşmaya başlayın');
-  document.getElementById('voice-send-btn').style.display = 'none';
+  setText('voice-status',     'Mikrofona basarak konuşmaya başlayın');
+  document.getElementById('voice-send-btn').style.display  = 'none';
   document.getElementById('voice-clear-btn').style.display = 'none';
   audioChunks = [];
 }
@@ -1521,51 +1560,51 @@ function clearVoice() {
 // ══════════════════════════════════════════════════════════════
 // SUBMIT MEETING
 // ══════════════════════════════════════════════════════════════
-async function submitMeeting() {
-  const title = document.getElementById('meeting-title').value.trim();
-  const notes = document.getElementById('meeting-notes').value.trim();
-  const date  = document.getElementById('meeting-date').value || new Date().toISOString().split('T')[0];
+function submitMeeting() {
+  var title = (document.getElementById('meeting-title').value || '').trim();
+  var notes = (document.getElementById('meeting-notes').value || '').trim();
+  var date  = document.getElementById('meeting-date').value || new Date().toISOString().split('T')[0];
 
   if (!notes) { showToast('Lütfen toplantı notunu girin', 'alert'); return; }
 
-  // If webhook is not configured, use demo mode
-  if (!CONFIG.webhookUrl || CONFIG.webhookUrl.includes('YOUR_')) {
+  if (!CONFIG.webhookUrl || CONFIG.webhookUrl.indexOf('YOUR_') !== -1) {
     simulateAIResponse(title || 'Demo Toplantı', notes, date);
     return;
   }
 
   showLoading('Yapay Zeka İşliyor', 'Gemini ile toplantı notu analiz ediliyor...');
 
-  try {
-    const res = await fetch(CONFIG.webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ meeting_title: title, meeting_notes: notes, meeting_date: date }),
-    });
-
+  fetch(CONFIG.webhookUrl, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ meeting_title: title, meeting_notes: notes, meeting_date: date }),
+  })
+  .then(function(res) {
     if (!res.ok) throw new Error('Webhook yanıt vermedi: ' + res.status);
-    const data = await res.json();
+    return res.json();
+  })
+  .then(function(data) {
     hideLoading();
     showAIPreview(data, title || 'Toplantı');
-  } catch (err) {
+  })
+  .catch(function(err) {
     hideLoading();
     console.error(err);
     showToast('Webhook bağlantı hatası — Demo moduna geçildi', 'alert');
     simulateAIResponse(title || 'Demo Toplantı', notes, date);
-  }
+  });
 }
 
 function simulateAIResponse(title, notes, date) {
-  // Parse names and tasks from the note as a simple demo
   showLoading('Demo Modu', 'Yapay zeka simülasyonu çalışıyor...');
-  setTimeout(() => {
+  setTimeout(function() {
     hideLoading();
-    const demoResult = {
-      meeting_title: title,
-      meeting_date: date,
-      follow_up_date: addDays(date, 7),
+    var demoResult = {
+      meeting_title:   title,
+      meeting_date:    date,
+      follow_up_date:  addDays(date, 7),
       action_items: [
-        { person: 'Ahmet', task: 'Demo görev 1 — notunuzdan çıkarıldı', deadline: addDays(date, 7), priority: 'Yüksek' },
+        { person: 'Ahmet',  task: 'Demo görev 1 — notunuzdan çıkarıldı',               deadline: addDays(date, 7),  priority: 'Yüksek' },
         { person: 'Zeynep', task: 'Demo görev 2 — gerçek webhook ile AI çıkarımı yapılır', deadline: addDays(date, 14), priority: 'Orta' },
       ]
     };
@@ -1577,55 +1616,54 @@ function simulateAIResponse(title, notes, date) {
 function showAIPreview(data, meetingName) {
   state.pendingAIResult = data;
   showApprovalPanel(data, meetingName);
-  document.getElementById('submit-info-card').style.display = 'none';
+  document.getElementById('submit-info-card').style.display   = 'none';
   document.getElementById('ai-preview-section').style.display = 'block';
   setText('preview-meeting-name', meetingName);
 
-  const items = data.action_items || [];
-  const today = new Date().toISOString().split('T')[0];
-  const body = document.getElementById('ai-preview-body');
+  var items = data.action_items || [];
+  var today = new Date().toISOString().split('T')[0];
+  var body  = document.getElementById('ai-preview-body');
 
   if (!items.length) {
     body.innerHTML = '<div style="color:var(--ink-3);font-size:13px;padding:8px 0">Görev bulunamadı. Notun daha detaylı olması gerekebilir.</div>';
     return;
   }
-  body.innerHTML = items.map((item, i) => `
-    <div class="preview-task" id="preview-item-${i}">
-      <span class="badge ${priorityBadge(item.priority)}">${item.priority||'Orta'}</span>
-      <div style="flex:1">
-        <div class="preview-task-name">${esc(item.task||'')}</div>
-        <div class="preview-task-who">${esc(item.person||'Belirsiz')}</div>
-      </div>
-      <div class="preview-task-date" style="color:${item.deadline && item.deadline < today ? 'var(--red)' : 'var(--ink-3)'}">
-        ${formatDate(item.deadline)}
-      </div>
-    </div>
-  `).join('');
+  body.innerHTML = items.map(function(item, i) {
+    var isLate = item.deadline && item.deadline < today;
+    return '<div class="preview-task" id="preview-item-' + i + '">' +
+      '<span class="badge ' + priorityBadge(item.priority) + '">' + (item.priority||'Orta') + '</span>' +
+      '<div style="flex:1">' +
+        '<div class="preview-task-name">' + esc(item.task||'') + '</div>' +
+        '<div class="preview-task-who">' + esc(item.person||'Belirsiz') + '</div>' +
+      '</div>' +
+      '<div class="preview-task-date" style="color:' + (isLate ? 'var(--red)' : 'var(--ink-3)') + '">' +
+        formatDate(item.deadline) +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
-async function confirmTasks() {
+function confirmTasks() {
   if (!state.pendingAIResult) return;
 
   showLoading('Kaydediliyor', 'Google Sheets, Gmail ve Calendar güncelleniyor...');
 
-  // If webhook is not configured, simulate
-  if (!CONFIG.webhookUrl || CONFIG.webhookUrl.includes('YOUR_')) {
-    setTimeout(() => {
+  if (!CONFIG.webhookUrl || CONFIG.webhookUrl.indexOf('YOUR_') !== -1) {
+    setTimeout(function() {
       hideLoading();
-      // Add to local state for demo
-      const items = state.pendingAIResult.action_items || [];
-      for (const item of items) {
+      var items = state.pendingAIResult.action_items || [];
+      items.forEach(function(item) {
         state.tasks.push({
-          ID: Date.now() + Math.random(),
+          ID:           String(Date.now()) + String(Math.floor(Math.random() * 10000)),
           Toplantı_Adı: state.pendingAIResult.meeting_title,
-          Sorumlu: item.person,
-          Görev: item.task,
-          Deadline: item.deadline,
-          Öncelik: item.priority,
-          Durum: 'Bekliyor',
-          Tarih: state.pendingAIResult.meeting_date,
+          Sorumlu:      item.person,
+          Görev:        item.task,
+          Deadline:     item.deadline,
+          Öncelik:      item.priority,
+          Durum:        'Bekliyor',
+          Tarih:        state.pendingAIResult.meeting_date,
         });
-      }
+      });
       updateAllViews();
       resetSubmitForm();
       showToast('Görevler kaydedildi ✓ (Demo mod)', 'check');
@@ -1633,18 +1671,22 @@ async function confirmTasks() {
     return;
   }
 
-  try {
-    await fetch(CONFIG.webhookUrl + '/confirm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...state.pendingAIResult, action: 'confirm' }),
-    });
-  } catch(e) { /* best effort */ }
-
-  hideLoading();
-  await fetchTasks();
-  resetSubmitForm();
-  showToast('Görevler kaydedildi, e-postalar gönderildi ✓', 'check');
+  // FIX 3 (same): strip trailing slash before appending /confirm
+  var confirmUrl = CONFIG.webhookUrl.replace(/\/$/, '') + '/confirm';
+  fetch(confirmUrl, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(Object.assign({}, state.pendingAIResult, { action: 'confirm' })),
+  })
+  .catch(function(e){ /* best effort */ })
+  .then(function() {
+    hideLoading();
+    return fetchTasks();
+  })
+  .then(function() {
+    resetSubmitForm();
+    showToast('Görevler kaydedildi, e-postalar gönderildi ✓', 'check');
+  });
 }
 
 function editTasks() {
@@ -1661,9 +1703,9 @@ function rejectTasks() {
 function resetSubmitForm() {
   document.getElementById('meeting-title').value = '';
   document.getElementById('meeting-notes').value = '';
-  document.getElementById('meeting-date').value = '';
+  document.getElementById('meeting-date').value  = '';
   document.getElementById('ai-preview-section').style.display = 'none';
-  document.getElementById('submit-info-card').style.display = 'block';
+  document.getElementById('submit-info-card').style.display   = 'block';
   state.pendingAIResult = null;
 }
 
@@ -1671,84 +1713,90 @@ function resetSubmitForm() {
 // TASKS TABLE
 // ══════════════════════════════════════════════════════════════
 function renderTaskTable() {
-  const search    = (document.getElementById('task-search')?.value || '').toLowerCase();
-  const status    = document.getElementById('filter-status')?.value || '';
-  const priority  = document.getElementById('filter-priority')?.value || '';
-  const person    = document.getElementById('filter-person')?.value || '';
+  var search   = (document.getElementById('task-search') ? document.getElementById('task-search').value : '').toLowerCase();
+  var status   = document.getElementById('filter-status')   ? document.getElementById('filter-status').value   : '';
+  var priority = document.getElementById('filter-priority') ? document.getElementById('filter-priority').value : '';
+  var person   = document.getElementById('filter-person')   ? document.getElementById('filter-person').value   : '';
 
   // Update person filter options
-  const personSel = document.getElementById('filter-person');
-  const allPersons = [...new Set(state.tasks.map(t => t.Sorumlu).filter(Boolean))].sort();
-  const curVal = personSel?.value;
+  var personSel  = document.getElementById('filter-person');
+  var allPersons = [];
+  state.tasks.forEach(function(t){ if (t.Sorumlu && allPersons.indexOf(t.Sorumlu) === -1) allPersons.push(t.Sorumlu); });
+  allPersons.sort();
+  var curVal = personSel ? personSel.value : '';
   if (personSel) {
     personSel.innerHTML = '<option value="">Herkes</option>' +
-      allPersons.map(p => `<option value="${esc(p)}" ${p===curVal?'selected':''}>${esc(p)}</option>`).join('');
+      allPersons.map(function(p){
+        return '<option value="' + esc(p) + '"' + (p === curVal ? ' selected' : '') + '>' + esc(p) + '</option>';
+      }).join('');
+    // Restore selection after rebuild
+    if (curVal) personSel.value = curVal;
   }
 
-  const today = new Date().toISOString().split('T')[0];
-  const filtered = state.tasks.filter(t => {
-    if (status && t.Durum !== status) return false;
-    if (priority && t.Öncelik !== priority) return false;
-    if (person && t.Sorumlu !== person) return false;
+  var today    = new Date().toISOString().split('T')[0];
+  var filtered = state.tasks.filter(function(t) {
+    if (status   && t.Durum    !== status)   return false;
+    if (priority && t.Öncelik  !== priority) return false;
+    if (person   && t.Sorumlu  !== person)   return false;
     if (search && !(
-      (t.Görev||'').toLowerCase().includes(search) ||
-      (t.Sorumlu||'').toLowerCase().includes(search) ||
-      (t.Toplantı_Adı||'').toLowerCase().includes(search)
+      (t.Görev        || '').toLowerCase().indexOf(search) !== -1 ||
+      (t.Sorumlu      || '').toLowerCase().indexOf(search) !== -1 ||
+      (t.Toplantı_Adı || '').toLowerCase().indexOf(search) !== -1
     )) return false;
     return true;
   });
 
   setText('task-count-label', filtered.length + ' görev gösteriliyor');
 
-  const body = document.getElementById('task-table-body');
+  var body = document.getElementById('task-table-body');
   if (!filtered.length) {
     body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-4)">Görev bulunamadı</td></tr>';
     return;
   }
 
-  body.innerHTML = filtered.map(t => {
-    const late = t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı';
-    const sb = statusBadge(t.Durum);
-    const pb = priorityBadge(t.Öncelik);
-    return `<tr>
-      <td><span class="badge ${pb}">${t.Öncelik||'—'}</span></td>
-      <td class="task-name">${esc(t.Görev||'')}</td>
-      <td>
-        <div class="person-chip">
-          ${avatar(t.Sorumlu)}
-          <span>${esc((t.Sorumlu||'—').split(' ')[0])}</span>
-        </div>
-      </td>
-      <td style="font-size:12px;color:${late?'var(--red)':'var(--ink-3)'}">
-        ${late?'⚠ ':''}${formatDate(t.Deadline)}
-      </td>
-      <td>
-        <select onchange="updateTaskStatus('${t.ID}',this.value)"
-          style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surf);color:var(--ink-2);cursor:pointer">
-          ${['Bekliyor','Devam Ediyor','Tamamlandı'].map(s =>
-            `<option ${s===t.Durum?'selected':''}>${s}</option>`
-          ).join('')}
-        </select>
-      </td>
-      <td style="font-size:12px;color:var(--ink-3)">${esc(t.Toplantı_Adı||'—')}</td>
-    </tr>`;
+  body.innerHTML = filtered.map(function(t) {
+    var late = t.Deadline && t.Deadline < today && t.Durum !== 'Tamamlandı';
+    var pb   = priorityBadge(t.Öncelik);
+    // FIX 5: Use data-id attribute instead of putting raw ID into onclick string
+    return '<tr>' +
+      '<td><span class="badge ' + pb + '">' + (t.Öncelik||'—') + '</span></td>' +
+      '<td class="task-name">' + esc(t.Görev||'') + '</td>' +
+      '<td>' +
+        '<div class="person-chip">' +
+          avatar(t.Sorumlu) +
+          '<span>' + esc((t.Sorumlu||'—').split(' ')[0]) + '</span>' +
+        '</div>' +
+      '</td>' +
+      '<td style="font-size:12px;color:' + (late ? 'var(--red)' : 'var(--ink-3)') + '">' +
+        (late ? '⚠ ' : '') + formatDate(t.Deadline) +
+      '</td>' +
+      '<td>' +
+        '<select data-id="' + esc(String(t.ID)) + '" onchange="updateTaskStatus(this.dataset.id, this.value)"' +
+          ' style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surf);color:var(--ink-2);cursor:pointer">' +
+          ['Bekliyor','Devam Ediyor','Tamamlandı'].map(function(s){
+            return '<option' + (s === t.Durum ? ' selected' : '') + '>' + s + '</option>';
+          }).join('') +
+        '</select>' +
+      '</td>' +
+      '<td style="font-size:12px;color:var(--ink-3)">' + esc(t.Toplantı_Adı||'—') + '</td>' +
+    '</tr>';
   }).join('');
 }
 
-async function updateTaskStatus(id, newStatus) {
-  const task = state.tasks.find(t => String(t.ID) === String(id));
+function updateTaskStatus(id, newStatus) {
+  var task = null;
+  for (var i = 0; i < state.tasks.length; i++) {
+    if (String(state.tasks[i].ID) === String(id)) { task = state.tasks[i]; break; }
+  }
   if (task) task.Durum = newStatus;
   updateAllViews();
 
-  // Send to n8n if configured
-  if (CONFIG.updateWebhookUrl && !CONFIG.updateWebhookUrl.includes('YOUR_')) {
-    try {
-      await fetch(CONFIG.updateWebhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status: newStatus }),
-      });
-    } catch(e) { console.warn('Status update webhook error:', e); }
+  if (CONFIG.updateWebhookUrl && CONFIG.updateWebhookUrl.indexOf('YOUR_') === -1) {
+    fetch(CONFIG.updateWebhookUrl, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id: id, status: newStatus }),
+    }).catch(function(e){ console.warn('Status update webhook error:', e); });
   }
   showToast('Durum güncellendi ✓', 'check');
 }
@@ -1756,46 +1804,41 @@ async function updateTaskStatus(id, newStatus) {
 // ══════════════════════════════════════════════════════════════
 // CALENDAR
 // ══════════════════════════════════════════════════════════════
-const MONTHS_TR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+var MONTHS_TR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
 function renderCalendar() {
-  const year = state.calYear, month = state.calMonth;
+  var year  = state.calYear, month = state.calMonth;
   setText('cal-month-label', MONTHS_TR[month] + ' ' + year);
 
-  const firstDay = new Date(year, month, 1);
-  // Monday-first: Sunday=0 becomes 6
-  let startDow = firstDay.getDay();
+  var firstDay = new Date(year, month, 1);
+  var startDow = firstDay.getDay();
   startDow = startDow === 0 ? 6 : startDow - 1;
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrev  = new Date(year, month, 0).getDate();
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var daysInPrev  = new Date(year, month, 0).getDate();
 
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  var today    = new Date();
+  var todayStr = today.toISOString().split('T')[0];
 
-  // Collect deadline dates
-  const deadlineDates = new Set(
-    state.tasks
-      .filter(t => t.Deadline && t.Durum !== 'Tamamlandı')
-      .map(t => t.Deadline)
-  );
+  var deadlineDates = {};
+  state.tasks.forEach(function(t){
+    if (t.Deadline && t.Durum !== 'Tamamlandı') deadlineDates[t.Deadline] = true;
+  });
 
-  let cells = '';
-  // Previous month days
-  for (let i = startDow - 1; i >= 0; i--) {
-    cells += `<div class="cal-cell other-month">${daysInPrev - i}</div>`;
+  var cells = '';
+  for (var i = startDow - 1; i >= 0; i--) {
+    cells += '<div class="cal-cell other-month">' + (daysInPrev - i) + '</div>';
   }
-  // Current month
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday = dateStr === todayStr;
-    const hasEvent = deadlineDates.has(dateStr);
-    cells += `<div class="cal-cell${isToday?' today':''}${hasEvent?' has-event':''}" onclick="calSelectDate('${dateStr}')">${d}</div>`;
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateStr  = year + '-' + (month + 1 < 10 ? '0' : '') + (month + 1) + '-' + (d < 10 ? '0' : '') + d;
+    var isToday  = dateStr === todayStr;
+    var hasEvent = !!deadlineDates[dateStr];
+    cells += '<div class="cal-cell' + (isToday ? ' today' : '') + (hasEvent ? ' has-event' : '') +
+      '" onclick="calSelectDate(\'' + dateStr + '\')">' + d + '</div>';
   }
-  // Next month
-  const total = startDow + daysInMonth;
-  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
-  for (let d = 1; d <= remaining; d++) {
-    cells += `<div class="cal-cell other-month">${d}</div>`;
+  var total     = startDow + daysInMonth;
+  var remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (var n = 1; n <= remaining; n++) {
+    cells += '<div class="cal-cell other-month">' + n + '</div>';
   }
 
   document.getElementById('cal-cells').innerHTML = cells;
@@ -1808,37 +1851,41 @@ function calSelectDate(dateStr) {
 }
 
 function renderCalEvents(dateStr) {
-  const tasks = dateStr
-    ? state.tasks.filter(t => t.Deadline === dateStr && t.Durum !== 'Tamamlandı')
-    : state.tasks.filter(t => t.Deadline && t.Durum !== 'Tamamlandı')
-        .sort((a,b) => (a.Deadline||'') < (b.Deadline||'') ? -1 : 1)
-        .slice(0, 8);
+  var tasks;
+  if (dateStr) {
+    tasks = state.tasks.filter(function(t){ return t.Deadline === dateStr && t.Durum !== 'Tamamlandı'; });
+  } else {
+    tasks = state.tasks
+      .filter(function(t){ return t.Deadline && t.Durum !== 'Tamamlandı'; })
+      .sort(function(a,b){ return (a.Deadline||'') < (b.Deadline||'') ? -1 : 1; })
+      .slice(0, 8);
+  }
 
-  const body = document.getElementById('cal-event-list');
+  var body  = document.getElementById('cal-event-list');
+  var today = new Date().toISOString().split('T')[0];
   if (!tasks.length) {
-    body.innerHTML = `<tr><td colspan="2" style="text-align:center;padding:32px;color:var(--ink-4)">
-      ${dateStr ? 'Bu tarihte deadline yok' : 'Bekleyen görev yok ✓'}
-    </td></tr>`;
+    body.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px;color:var(--ink-4)">' +
+      (dateStr ? 'Bu tarihte deadline yok' : 'Bekleyen görev yok ✓') +
+    '</td></tr>';
     return;
   }
-  const today = new Date().toISOString().split('T')[0];
-  body.innerHTML = tasks.map(t => {
-    const late = t.Deadline && t.Deadline < today;
-    return `<tr>
-      <td>
-        <div style="font-size:13px;font-weight:500;color:var(--ink)">${esc(t.Görev||'')}</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
-          ${avatar(t.Sorumlu)}
-          <span style="font-size:11px;color:var(--ink-3)">${esc(t.Sorumlu||'')}</span>
-        </div>
-      </td>
-      <td style="text-align:right">
-        <div style="font-size:12px;color:${late?'var(--red)':'var(--ink-3)'}">
-          ${late?'⚠ ':''}${formatDate(t.Deadline)}
-        </div>
-        <span class="badge ${priorityBadge(t.Öncelik)}" style="margin-top:4px;display:inline-flex">${t.Öncelik||'—'}</span>
-      </td>
-    </tr>`;
+  body.innerHTML = tasks.map(function(t) {
+    var late = t.Deadline && t.Deadline < today;
+    return '<tr>' +
+      '<td>' +
+        '<div style="font-size:13px;font-weight:500;color:var(--ink)">' + esc(t.Görev||'') + '</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">' +
+          avatar(t.Sorumlu) +
+          '<span style="font-size:11px;color:var(--ink-3)">' + esc(t.Sorumlu||'') + '</span>' +
+        '</div>' +
+      '</td>' +
+      '<td style="text-align:right">' +
+        '<div style="font-size:12px;color:' + (late ? 'var(--red)' : 'var(--ink-3)') + '">' +
+          (late ? '⚠ ' : '') + formatDate(t.Deadline) +
+        '</div>' +
+        '<span class="badge ' + priorityBadge(t.Öncelik) + '" style="margin-top:4px;display:inline-flex">' + (t.Öncelik||'—') + '</span>' +
+      '</td>' +
+    '</tr>';
   }).join('');
 }
 
@@ -1857,71 +1904,78 @@ function calNext() {
 // NOTES
 // ══════════════════════════════════════════════════════════════
 function renderNoteList() {
-  const byMeeting = {};
-  for (const t of state.tasks) {
-    const m = t.Toplantı_Adı || 'Bilinmiyor';
+  var byMeeting = {};
+  state.tasks.forEach(function(t) {
+    var m = t.Toplantı_Adı || 'Bilinmiyor';
     if (!byMeeting[m]) byMeeting[m] = { tasks:[], date: t.Tarih||'' };
     byMeeting[m].tasks.push(t);
-  }
-  const meetings = Object.entries(byMeeting).sort((a,b) => (b[1].date||'') > (a[1].date||'') ? 1:-1);
+  });
+  var meetings = Object.keys(byMeeting)
+    .map(function(k){ return [k, byMeeting[k]]; })
+    .sort(function(a,b){ return (b[1].date||'') > (a[1].date||'') ? 1 : -1; });
 
-  const el = document.getElementById('note-list');
+  var el = document.getElementById('note-list');
   if (!meetings.length) {
     el.innerHTML = '<div style="color:var(--ink-4);font-size:13px;padding:20px">Henüz toplantı yok</div>';
     return;
   }
-  el.innerHTML = meetings.map(([name, v]) => {
-    const persons = [...new Set(v.tasks.map(t=>t.Sorumlu).filter(Boolean))];
-    const done = v.tasks.filter(t=>t.Durum==='Tamamlandı').length;
-    const sel = state.selectedNote === name;
-    return `<div class="note-item${sel?' selected':''}" onclick="selectNote('${esc(name)}')">
-      <div class="note-title">${esc(name)}</div>
-      <div class="note-meta">${formatDate(v.date)} · ${v.tasks.length} görev · ${done} tamamlandı</div>
-      <div class="note-excerpt">${persons.join(', ')}</div>
-    </div>`;
+  // FIX 1 in action: esc(name) now escapes single quotes too, so onclick is safe
+  el.innerHTML = meetings.map(function(entry) {
+    var name = entry[0], v = entry[1];
+    var persons  = [];
+    v.tasks.forEach(function(t){ if (t.Sorumlu && persons.indexOf(t.Sorumlu) === -1) persons.push(t.Sorumlu); });
+    var done = v.tasks.filter(function(t){ return t.Durum === 'Tamamlandı'; }).length;
+    var sel  = state.selectedNote === name;
+    return '<div class="note-item' + (sel ? ' selected' : '') + '" onclick="selectNote(\'' + esc(name) + '\')">' +
+      '<div class="note-title">' + esc(name) + '</div>' +
+      '<div class="note-meta">' + formatDate(v.date) + ' · ' + v.tasks.length + ' görev · ' + done + ' tamamlandı</div>' +
+      '<div class="note-excerpt">' + esc(persons.join(', ')) + '</div>' +
+    '</div>';
   }).join('');
 }
 
-function selectNote(name) {
+// FIX 6: selectNote now receives an HTML-unescaped name by decoding &#39; back
+function selectNote(escapedName) {
+  // Decode &#39; -> ' so we can match the original task data
+  var name = escapedName.replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
   state.selectedNote = name;
   renderNoteList();
 
-  const tasks = state.tasks.filter(t => t.Toplantı_Adı === name);
-  const done = tasks.filter(t=>t.Durum==='Tamamlandı').length;
-  const date = tasks[0]?.Tarih || '';
+  var tasks = state.tasks.filter(function(t){ return t.Toplantı_Adı === name; });
+  var done  = tasks.filter(function(t){ return t.Durum === 'Tamamlandı'; }).length;
+  var date  = tasks.length ? (tasks[0].Tarih || '') : '';
 
-  const detail = document.getElementById('note-detail');
-  detail.innerHTML = `
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">${esc(name)}</span>
-        <span class="badge badge-teal">${tasks.length} görev</span>
-      </div>
-      <div class="card-body">
-        <div style="display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:var(--ink-3)">
-          <span>📅 ${formatDate(date)}</span>
-          <span>✓ ${done}/${tasks.length} tamamlandı</span>
-        </div>
-        <div class="prog-bar-wrap" style="margin-bottom:20px">
-          <div class="prog-bar" style="width:${tasks.length ? Math.round(done/tasks.length*100) : 0}%"></div>
-        </div>
-        <div class="card-title" style="margin-bottom:10px">Görevler</div>
-        ${tasks.map(t => `
-          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
-            <span class="badge ${priorityBadge(t.Öncelik)}">${t.Öncelik||'—'}</span>
-            <div style="flex:1">
-              <div style="font-size:13px;font-weight:500;color:var(--ink)">${esc(t.Görev||'')}</div>
-              <div style="font-size:11px;color:var(--ink-3);margin-top:2px">${esc(t.Sorumlu||'')} · ${formatDate(t.Deadline)}</div>
-            </div>
-            <span class="badge ${statusBadge(t.Durum)}">${t.Durum||'—'}</span>
-          </div>
-        `).join('')}
-        <div style="display:flex;gap:8px;margin-top:16px">
-          <button class="btn btn-ghost btn-sm" onclick="navigate('tasks')">Görevleri Düzenle →</button>
-        </div>
-      </div>
-    </div>
-  `;
+  var detail = document.getElementById('note-detail');
+  detail.innerHTML =
+    '<div class="card">' +
+      '<div class="card-header">' +
+        '<span class="card-title">' + esc(name) + '</span>' +
+        '<span class="badge badge-teal">' + tasks.length + ' görev</span>' +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div style="display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:var(--ink-3)">' +
+          '<span>📅 ' + formatDate(date) + '</span>' +
+          '<span>✓ ' + done + '/' + tasks.length + ' tamamlandı</span>' +
+        '</div>' +
+        '<div class="prog-bar-wrap" style="margin-bottom:20px">' +
+          '<div class="prog-bar" style="width:' + (tasks.length ? Math.round(done / tasks.length * 100) : 0) + '%"></div>' +
+        '</div>' +
+        '<div class="card-title" style="margin-bottom:10px">Görevler</div>' +
+        tasks.map(function(t) {
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">' +
+            '<span class="badge ' + priorityBadge(t.Öncelik) + '">' + (t.Öncelik||'—') + '</span>' +
+            '<div style="flex:1">' +
+              '<div style="font-size:13px;font-weight:500;color:var(--ink)">' + esc(t.Görev||'') + '</div>' +
+              '<div style="font-size:11px;color:var(--ink-3);margin-top:2px">' + esc(t.Sorumlu||'') + ' · ' + formatDate(t.Deadline) + '</div>' +
+            '</div>' +
+            '<span class="badge ' + statusBadge(t.Durum) + '">' + (t.Durum||'—') + '</span>' +
+          '</div>';
+        }).join('') +
+        '<div style="display:flex;gap:8px;margin-top:16px">' +
+          '<button class="btn btn-ghost btn-sm" onclick="navigate(\'tasks\')">Görevleri Düzenle →</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1930,49 +1984,51 @@ function selectNote(name) {
 function priorityBadge(p) {
   if (!p) return 'badge-low';
   p = p.toLowerCase();
-  if (p.includes('yük')) return 'badge-high';
-  if (p.includes('orta') || p.includes('med')) return 'badge-med';
+  if (p.indexOf('yük') !== -1) return 'badge-high';
+  if (p.indexOf('orta') !== -1 || p.indexOf('med') !== -1) return 'badge-med';
   return 'badge-low';
 }
+
 function statusBadge(s) {
   if (!s) return 'badge-wait';
-  if (s === 'Tamamlandı') return 'badge-done';
+  if (s === 'Tamamlandı')   return 'badge-done';
   if (s === 'Devam Ediyor') return 'badge-wip';
   return 'badge-wait';
 }
+
 function formatDate(d) {
   if (!d) return '—';
   try {
-    const dt = new Date(d + 'T00:00:00');
+    var dt = new Date(d + 'T00:00:00');
     return dt.toLocaleDateString('tr-TR', { day:'numeric', month:'short', year:'numeric' });
-  } catch { return d; }
+  } catch(e) { return d; }
 }
+
 function addDays(dateStr, n) {
-  const d = new Date(dateStr + 'T00:00:00');
+  var d = new Date(dateStr + 'T00:00:00');
   d.setDate(d.getDate() + n);
   return d.toISOString().split('T')[0];
 }
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+
 function setText(id, val) {
-  const el = document.getElementById(id);
+  var el = document.getElementById(id);
   if (el) el.textContent = val;
 }
 
 function showLoading(title, sub) {
   setText('loading-text', title);
-  setText('loading-sub', sub);
+  setText('loading-sub',  sub);
   document.getElementById('loading').classList.add('visible');
 }
+
 function hideLoading() {
   document.getElementById('loading').classList.remove('visible');
 }
 
-let toastTimer;
+var toastTimer;
 function showToast(msg, type) {
-  const t = document.getElementById('toast');
-  const icon = t.querySelector('.toast-icon');
+  var t    = document.getElementById('toast');
+  var icon = t.querySelector('.toast-icon');
   setText('toast-msg', msg);
   icon.innerHTML = type === 'check'
     ? '<use href="#ico-check"/>'
@@ -1981,13 +2037,13 @@ function showToast(msg, type) {
     : '<use href="#ico-refresh"/>';
   t.classList.add('visible');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('visible'), 3000);
+  toastTimer = setTimeout(function(){ t.classList.remove('visible'); }, 3000);
 }
 
 // ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
-document.getElementById('meeting-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('meeting-date').value       = new Date().toISOString().split('T')[0];
 document.getElementById('voice-meeting-date').value = new Date().toISOString().split('T')[0];
 fetchTasks();
 
