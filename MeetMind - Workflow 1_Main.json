@@ -1,0 +1,771 @@
+{
+  "name": "MeetMind - Workflow 1 : Main",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "meetmind",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c1f23a53-ec74-4a4c-b78e-fe64d9ab1624",
+      "name": "Webhook Tetikleyici",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1312,
+        128
+      ],
+      "webhookId": "meetmind-main-webhook",
+      "notes": "POST /meetmind endpoint. Body: { \"meeting_notes\": \"...\" }"
+    },
+    {
+      "parameters": {
+        "jsCode": "const notes = $json.meeting_notes || $json.body?.meeting_notes || '';\nconst title = $json.meeting_title || $json.body?.meeting_title || 'İsimsiz Toplantı';\nconst date  = $json.meeting_date  || $json.body?.meeting_date  || new Date().toISOString().split('T')[0];\nconst action = $json.action || $json.body?.action || 'analyze';\nconst action_items = $json.action_items || $json.body?.action_items || [];\n\nconst cleanNotes = notes\n  .substring(0, 4000)\n  .trim()\n  .replace(/\\n/g, ' ')      // newlines → space\n  .replace(/\\r/g, ' ')      // carriage returns → space\n  .replace(/\\t/g, ' ')      // tabs → space\n  .replace(/\\\\/g, '\\\\\\\\')   // backslashes → escaped\n  .replace(/\"/g, '\\\\\"');    // quotes → escaped\n\nconst defaultDeadline = new Date();\ndefaultDeadline.setDate(defaultDeadline.getDate() + 7);\nconst defaultDeadlineStr = defaultDeadline.toISOString().split('T')[0];\n\nreturn [{\n  json: {\n    meeting_title:    title,\n    meeting_notes:    cleanNotes,\n    meeting_date:     date,\n    default_deadline: defaultDeadlineStr,\n    processed_at:     new Date().toISOString(),\n    action:           action,        // YENİ\n    action_items:     action_items,  // YENİ\n  }\n}];"
+      },
+      "id": "12aa09a8-e298-45ea-8335-933368fb10a0",
+      "name": "Metin Temizle",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        128
+      ],
+      "notes": "Boşlukları temizler, 4000 karakter sınırı uygular"
+    },
+    {
+      "parameters": {
+        "jsCode": "// HTTP Request çıktısından Gemini metnini al\nconst raw = $input.first().json.candidates[0].content.parts[0].text;\n\n// Markdown temizle\nlet cleaned = raw\n  .replace(/```json/gi, '')\n  .replace(/```/g, '')\n  .trim();\n\n// İlk { ile son } arasını al\nconst firstBrace = cleaned.indexOf('{');\nconst lastBrace = cleaned.lastIndexOf('}');\ncleaned = cleaned.substring(firstBrace, lastBrace + 1);\n\n// Parse et\nconst parsed = JSON.parse(cleaned);\n\n// action_items içindeki her item'a meeting_title ve follow_up_date ekle\nconst meetingTitle = parsed.meeting_title || 'Bilinmeyen';\nconst followUpDate = parsed.follow_up_date || '';\nconst meetingDate = parsed.meeting_date || '';\n\n// Her action_item'ı ayrı bir output item olarak döndür\nconst items = parsed.action_items.map(item => ({\n  json: {\n    person:         item.person    || 'Belirsiz',\n    task:           item.task      || '',\n    deadline:       item.deadline  || '',\n    priority:       item.priority  || 'Orta',\n    notes:          item.notes     || null,\n    meeting_title:  meetingTitle,\n    follow_up_date: followUpDate,\n    meeting_date:   meetingDate\n  }\n}));\n\nreturn items;"
+      },
+      "id": "431b84b2-4ab4-4082-8f86-73d98d90abae",
+      "name": "JSON Çözümle",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        144
+      ],
+      "notes": "Gemini yanıtını parse eder, hata yönetimi içerir"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1VxDBeNJxg9EzcJfqVDcUwo19ez_mD7Vi8GWx1ZaMKBI",
+          "mode": "id"
+        },
+        "sheetName": {
+          "value": "Log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Tarih": "={{ $json.meeting_date }}",
+            "Toplantı Adı": "={{ $json.meeting_title }}",
+            "Sorumlu": "={{ $json.person }}",
+            "Görev": "={{ $json.task }}",
+            "Deadline": "={{ $json.deadline }}",
+            "Öncelik": "={{ $json.priority }}",
+            "Durum": "=Bekliyor",
+            "Notlar": "={{ $json.notes }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Tarih",
+              "displayName": "Tarih",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Toplantı Adı",
+              "displayName": "Toplantı Adı",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sorumlu",
+              "displayName": "Sorumlu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Görev",
+              "displayName": "Görev",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Deadline",
+              "displayName": "Deadline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Öncelik",
+              "displayName": "Öncelik",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Durum",
+              "displayName": "Durum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "E-Posta",
+              "displayName": "E-Posta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Notlar",
+              "displayName": "Notlar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ff961320-4ed2-4ecc-9775-d75998ccd9a6",
+      "name": "Sheets: Görev Yaz",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        32,
+        -384
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lIPhj7Owl2zp4LlO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "notes": "⚠️ YOUR_GOOGLE_SHEET_ID_HERE → Sheets URL'sinden kopyalayın\nCredential: MeetMind Sheets"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.recipient_email }}",
+        "subject": "={{ $json.email_subject }}",
+        "emailType": "text",
+        "message": "={{ $json.email_body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "3e9c781e-bd6b-49af-a153-3f50c8c05716",
+      "name": "Gmail: Gönder",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        944,
+        -256
+      ],
+      "webhookId": "f9ff38eb-bed7-45d5-a141-9e0e6c89564a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "FsBjOdAxRFY1FOfM",
+          "name": "MeetMind  Gmail"
+        }
+      },
+      "notes": "⚠️ Alıcı e-posta: JSON'da 'email' alanı yoksa YOUR_EMAIL_ADDRESS_HERE kullanır\nCredential: MeetMind Gmail"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.deadline }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "bbf37b54-6761-470a-9107-2956da62df0b"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8bc55d9a-42bd-4aa2-836a-1063c3f956fd",
+      "name": "Deadline Var mı?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        336,
+        16
+      ],
+      "notes": "Deadline null ise Calendar adımını atlar"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "ae6994b096864b32160ba24471d8a501fb596fc7ff748bbcf1ea3c08f805a559@group.calendar.google.com",
+          "mode": "id"
+        },
+        "start": "={{DateTime.fromISO($json.deadline).toISO()}}",
+        "end": "={{DateTime.fromISO($json.deadline).toISO()}}",
+        "useDefaultReminders": false,
+        "additionalFields": {
+          "allday": "no",
+          "attendees": [],
+          "color": "=10",
+          "description": "==Toplantı: {{$json.toplanti_adi}}\\nSorumlu: {{$json.sorumlu}}\\nÖncelik: {{$json.priority}}\\nTakip: {{$json.follow_up_date}}",
+          "summary": "=={{$json.gorev}} — {{$json.sorumlu}}"
+        },
+        "remindersUi": {
+          "remindersValues": [
+            {
+              "method": "popup",
+              "minutes": 60
+            }
+          ]
+        }
+      },
+      "id": "3cccdda7-ff98-4bdd-8525-8fedae22a913",
+      "name": "Calendar: Etkinlik Ekle",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        64
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "I0Hr1D46qLLVRQX4",
+          "name": "MeetMind Calendar"
+        }
+      },
+      "notes": "⚠️ YOUR_GOOGLE_CALENDAR_ID_HERE → Calendar Ayarları > Takvim ID\nCredential: MeetMind Calendar"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyA5dhaocharyue5apCQUAeI26OBRiZQ3fA",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.gemini_body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -480,
+        144
+      ],
+      "id": "46eb8ca9-4c75-4602-88c1-28906692a7d6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "16b8f44e-c6da-44ff-b809-0f9b1c3d6540",
+              "leftValue": "=={{ $json.recipient_email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "ea7129d7-ef79-4c5e-8a74-10482f5f3baa",
+              "leftValue": "=={{ $json.recipient_email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d9695bc7-849e-45a8-bb4b-0d66ae5e70b0",
+              "leftValue": "=={{ $json.recipient_email }}",
+              "rightValue": "\"null\"",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        -208
+      ],
+      "id": "979550c3-ec74-4b7e-9971-65f9bdc64c5a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "ae6994b096864b32160ba24471d8a501fb596fc7ff748bbcf1ea3c08f805a559@group.calendar.google.com",
+          "mode": "id"
+        },
+        "start": "={{new Date($json.follow_up_date + 'T10:00:00').toISOString()}}",
+        "end": "={{new Date($json.follow_up_date + 'T11:00:00').toISOString()}}",
+        "additionalFields": {
+          "description": "==MeetMind tarafından otomatik oluşturuldu.",
+          "summary": "==Takip Toplantısı — {{$json.toplanti_adi}}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        688,
+        -416
+      ],
+      "id": "951e5908-c551-43cc-86fc-e9a1b996fae6",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "I0Hr1D46qLLVRQX4",
+          "name": "MeetMind Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst results = items.map(inputItem => {\n  const item = inputItem.json;\n  \n  const task =     item.task        || item.gorev    || 'Görev belirtilmedi';\n  const person =   item.person      || item.sorumlu  || 'Ekip Üyesi';\n  const deadline = item.deadline    || 'Belirtilmedi';\n  const priority = item.priority    || item.oncelik  || 'Orta';\n  const meeting =  item.meeting_title || item.toplanti_adi || 'Toplantı';\n  const email =    item.person_email || item.email   || 'takim11hackathon@gmail.com';\n\n  let tone = '';\n  if (priority === 'Yüksek') {\n    tone = 'Bu görev KRİTİK öneme sahiptir ve en kısa sürede tamamlanmalıdır.';\n  } else if (priority === 'Orta') {\n    tone = 'Bu görev planlı şekilde ilerletilmelidir.';\n  } else {\n    tone = 'Bu görev uygun zaman planlamasıyla tamamlanabilir.';\n  }\n\n  const subject = `[${priority}] Görev Atama: ${task}`;\n  const body = `Merhaba ${person},\n\n\"${meeting}\" toplantısı kapsamında sana yeni bir görev atanmıştır.\n\nGörev: ${task}\nÖncelik: ${priority}\nSon Tarih: ${deadline}\n\nNot: ${tone}\n\nLütfen belirtilen tarihe kadar tamamlamanı rica ederiz.\n\nTeşekkürler,\nMeetMind Sistemi`.trim();\n\n  return {\n    json: {\n      email_subject:   subject,\n      email_body:      body,\n      recipient_email: email,\n      recipient_name:  person,\n      task,\n      deadline,\n      priority,\n      meeting_title:   meeting,\n      follow_up_date:  item.follow_up_date || '',\n      sorumlu:         person,\n      gorev:           task,\n      toplanti_adi:    meeting\n    }\n  };\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        -208
+      ],
+      "id": "284157fa-d09b-4602-91b8-7e09befc8643",
+      "name": "Email Template"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst now = new Date();\nconst pad = n => String(n).padStart(2, '0');\nconst today = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;\n\nconst results = items.map(inputItem => {\n  const item = inputItem.json;\n  \n  const followUpDate = item.follow_up_date || (() => {\n    const d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);\n    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;\n  })();\n\n  const id = `MM-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${Math.floor(Math.random()*9000+1000)}`;\n\n  return {\n    json: {\n      id:             id,\n      tarih:          today,\n      toplanti_adi:   item.meeting_title  || 'Bilinmeyen',\n      sorumlu:        item.person         || 'Belirsiz',\n      gorev:          item.task           || '',\n      deadline:       item.deadline       || today,\n      oncelik:        item.priority       || 'Orta',\n      durum:          'Bekliyor',\n      notlar:         item.notes          || '',\n      follow_up_date: followUpDate,\n      meeting_title:  item.meeting_title  || 'Bilinmeyen',\n      person:         item.person         || 'Belirsiz',\n      task:           item.task           || '',\n      priority:       item.priority       || 'Orta',\n      deadline_raw:   item.deadline       || today\n    }\n  };\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        128
+      ],
+      "id": "4b0abca0-75d2-4374-acf3-e4f9e11538a6",
+      "name": "Veri Hazırla"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hem Türkçe hem İngilizce alan isimlerini dene\nconst priority = $json.priority || $json[\"Öncelik\"] || $json.oncelik || 'Orta';\nconst deadline = $json[\"Deadline\"] || $json.deadline || $json.deadline_raw || '';\nconst sorumlu = $json[\"Sorumlu\"] || $json.sorumlu || $json.person || 'Belirsiz';\nconst gorev = $json[\"Görev\"] || $json.gorev || $json.task || '';\nconst toplanti = $json[\"Toplantı Adı\"] || $json.toplanti_adi || $json.meeting_title || '';\nconst followUp = $json[\"follow_up_date\"] || $json.follow_up_date || deadline;\n\nconst colorMap = {\n  'Yüksek': '11',\n  'Orta':   '5',\n  'Düşük':  '2',\n};\n\nreturn [{ \n  json: {\n    ...($json),\n    calendar_color:  colorMap[priority] || '1',\n    priority:        priority,\n    deadline:        deadline,\n    sorumlu:         sorumlu,\n    gorev:           gorev,\n    toplanti_adi:    toplanti,\n    follow_up_date:  followUp\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "6652bb53-5c56-4fe4-8d11-684b02db53b5",
+      "name": "Color Map"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Sadece ilk item'dan follow_up_date al\n// Çünkü tüm itemlar aynı toplantıdan geliyor\nconst item = items[0].json;\n\nconst followUp = item.follow_up_date || '';\n\nif (!followUp) {\n  return [{\n    json: {\n      hata: 'follow_up_date bulunamadı',\n      gelen_alanlar: Object.keys(item)\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    follow_up_date: followUp,\n    toplanti_adi: item.toplanti_adi || item.meeting_title || 'Takip Toplantısı',\n    sorumlu: item.sorumlu || item.person || 'Ekip'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -432
+      ],
+      "id": "67d604e0-81ac-4a38-b2b3-fef2c7706796",
+      "name": "Get Follow Up Date"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($input.first().json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "=Access-Control-Allow-Origin",
+                "value": "=*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1152,
+        -256
+      ],
+      "id": "de65b3b3-e3b1-4a4f-aa54-388c2ad4b47d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const notes = $json.meeting_notes;\nconst meetingDate = $json.meeting_date;\nconst meetingTitle = $json.meeting_title;\n\nconst body = {\n  contents: [{\n    role: \"user\",\n    parts: [{\n      text: `Sen bir toplantı asistanısın. Aşağıdaki toplantı notunu analiz et.\\nSADECE JSON döndür. Markdown kullanma. Açıklama yazma.\\n\\nTOPLANTI NOTU:\\n${notes}\\n\\nŞu formatta yanıt ver:\\n{\\n  \"meeting_title\": \"string\",\\n  \"meeting_date\": \"YYYY-MM-DD\",\\n  \"follow_up_date\": \"YYYY-MM-DD\",\\n  \"action_items\": [\\n    {\\n      \"person\": \"Ad Soyad\",\\n      \"task\": \"Görev\",\\n      \"deadline\": \"YYYY-MM-DD\",\\n      \"priority\": \"Yüksek\",\\n      \"notes\": null\\n    }\\n  ]\\n}\\n\\nKURALLAR:\\n- meeting_title olarak \"${meetingTitle}\" kullan, değiştirme.\\n- Bugünün tarihi: ${meetingDate}. Tüm deadline'lar bu tarihten sonra olmalı, geçmiş tarih kullanma.\\n- deadline yoksa bugundan 7 gun sonrasini kullan\\n- priority sadece: Yuksek, Orta, Dusuk\\n- follow_up_date: meeting_date + 7 gun\\n- Kisi adi belirsizse: Belirsiz yaz`\n    }]\n  }],\n  generationConfig: {\n    temperature: 0.1,\n    maxOutputTokens: 8192\n  }\n};\n\nreturn [{\n  json: {\n    ...$json,\n    gemini_body: JSON.stringify(body)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -688,
+        144
+      ],
+      "id": "1fde03fe-1b5a-4164-a42d-7df23fcf4811",
+      "name": "Gemini Body Hazırla"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e5b19f8b-c9e5-4cdb-8b6a-4c6c4ab9dd8c",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "=confirm",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -912,
+        128
+      ],
+      "id": "6e684781-8a8b-4fc5-979a-bbbeef9cb4a1",
+      "name": "Confirm?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $json.action_items || [];\nconst meetingTitle = $json.meeting_title || 'İsimsiz Toplantı';\nconst meetingDate = $json.meeting_date || new Date().toISOString().split('T')[0];\n\nreturn items.map(item => ({\n  json: {\n    meeting_title: meetingTitle,\n    meeting_date:  meetingDate,\n    person:        item.person,\n    task:          item.task,\n    deadline:      item.deadline,\n    priority:      item.priority,\n    notes:         item.notes || null,\n    status:        'Bekliyor',\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        -80
+      ],
+      "id": "eafafd9e-9ec0-45c0-af65-652422b0c8ad",
+      "name": "Confirm Hazırla"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        352,
+        352
+      ],
+      "id": "cfb63b19-8b9d-4178-a6e4-7808bb431322",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(item => ({\n  person:   item.json.person   || item.json.sorumlu,\n  task:     item.json.task     || item.json.gorev,\n  deadline: item.json.deadline || item.json.deadline_raw,\n  priority: item.json.priority || item.json.oncelik,\n  notes:    item.json.notlar   || null,\n}));\n\nconst first = $input.first().json;\n\nreturn [{\n  json: {\n    meeting_title: first.meeting_title || first.toplanti_adi,\n    meeting_date:  first.tarih,\n    action_items:  items,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        208
+      ],
+      "id": "280588f4-53f7-4a1c-b1de-335051900365",
+      "name": "Yanıt Hazırla"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Tetikleyici": {
+      "main": [
+        [
+          {
+            "node": "Metin Temizle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Metin Temizle": {
+      "main": [
+        [
+          {
+            "node": "Confirm?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON Çözümle": {
+      "main": [
+        [
+          {
+            "node": "Veri Hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail: Gönder": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deadline Var mı?": {
+      "main": [
+        [
+          {
+            "node": "Color Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "JSON Çözümle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets: Görev Yaz": {
+      "main": [
+        [
+          {
+            "node": "Get Follow Up Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Gmail: Gönder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Template": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Veri Hazırla": {
+      "main": [
+        [
+          {
+            "node": "Yanıt Hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Color Map": {
+      "main": [
+        [
+          {
+            "node": "Calendar: Etkinlik Ekle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Follow Up Date": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Body Hazırla": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm?": {
+      "main": [
+        [
+          {
+            "node": "Confirm Hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gemini Body Hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm Hazırla": {
+      "main": [
+        [
+          {
+            "node": "Sheets: Görev Yaz",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Deadline Var mı?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        []
+      ]
+    },
+    "Yanıt Hazırla": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b4585d9a-635a-4f04-bec7-a1ccb9811a9d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c9777f5c06799c9b8a4e21297ec3f6be067bd785ff228c5027665e0ab6499208"
+  },
+  "id": "7VBQb0iQ2VuxvTz6",
+  "tags": []
+}
