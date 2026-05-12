@@ -1,51 +1,52 @@
-# MeetMind — AI-Powered Meeting Assistant
+# MeetMind — Yapay Zeka Destekli Toplantı Asistanı
 
-> Transform meeting notes into actionable tasks — automatically tracked, assigned, and delivered.
+> Toplantı notlarını otomatik olarak takip edilen, atanan ve iletilen eyleme dönüştürülebilir görevlere dönüştürün.
 
-**Live Website:** [meetmind-hackathon-takim11.github.io](https://meetmind-hackathon-takim11.github.io)
-**Live Website:** Youtube Link
+**Canlı Demo:** [meetmind-hackathon-takim11.github.io](https://meetmind-hackathon-takim11.github.io)
 
----
-
-## What is MeetMind?
-
-MeetMind is a meeting productivity tool that turns raw meeting notes into structured tasks using Google Gemini AI. Tasks are automatically synced to Google Sheets, assigned to team members via Gmail, and scheduled in Google Calendar — all from a single paste.
-
-Built with a fully static frontend (vanilla HTML/CSS/JS) hosted on GitHub Pages, powered by n8n automation workflows in the backend.
+**Tanıtım Videosu:** [YouTube'da İzle](#) *(Bağlantı yakında eklenecek)*
 
 ---
 
-## Features
+## MeetMind Nedir?
 
-- **AI Task Extraction** — Paste meeting notes, Gemini extracts tasks, people, deadlines, and priorities automatically
-- **Human-in-the-Loop Approval** — Review and confirm AI-extracted tasks before anything is saved or sent
-- **Live Dashboard** — KPI cards, risk meter, mood analysis, person distribution, all synced from Google Sheets
-- **Task Management** — Filter, sort, and update task statuses directly from the dashboard
-- **Calendar View** — Deadline tracking with an interactive monthly calendar
-- **Meeting Archive** — Browse past meetings and their associated tasks
-- **Voice Notes** — Send a Telegram voice message instead of typing — Whisper AI transcribes it automatically
-- **Weekly Digest** — Automated Monday morning email summarizing completed and pending tasks
-- **Status Sync** — Update task status in the dashboard and it syncs back to Google Sheets in real time
+MeetMind, ham toplantı notlarını Google Gemini yapay zekası kullanarak yapılandırılmış görevlere dönüştüren bir toplantı verimliliği aracıdır. Görevler otomatik olarak Google Sheets'e senkronize edilir, Gmail üzerinden ekip üyelerine atanır ve Google Takvim'e işlenir — tek bir yapıştırma işlemiyle.
+
+GitHub Pages üzerinde barındırılan tam statik bir ön yüz (vanilla HTML/CSS/JS) ile oluşturulmuştur; arka uçta n8n otomasyon iş akışları çalışmaktadır.
 
 ---
 
-## Tech Stack
+## Özellikler
 
-| Layer | Technology |
+- **Yapay Zeka ile Görev Çıkarımı** — Toplantı notlarını yapıştırın, Gemini görevleri, sorumlu kişileri, son tarihleri ve öncelikleri otomatik olarak çıkarır
+- **İnsan Onaylı Akış** — Herhangi bir şey kaydedilmeden veya gönderilmeden önce yapay zekanın çıkardığı görevleri inceleyin ve onaylayın
+- **Canlı Gösterge Paneli** — Google Sheets'ten senkronize edilen KPI kartları, risk ölçeri, duygu durum analizi ve kişi dağılımı
+- **Görev Yönetimi** — Görev durumlarını doğrudan gösterge panelinden filtreleyin, sıralayın ve güncelleyin
+- **Takvim Görünümü** — Etkileşimli aylık takvim ile son tarih takibi
+- **Toplantı Arşivi** — Geçmiş toplantılara ve ilgili görevlere göz atın
+- **Sesli Notlar** — Yazmak yerine Telegram'a sesli mesaj gönderin; Whisper yapay zekası metne otomatik dönüştürür
+- **Haftalık Özet** — Her Pazartesi sabahı tamamlanan ve bekleyen görevleri özetleyen otomatik e-posta
+- **Durum Senkronizasyonu** — Gösterge panelindeki görev durumunu güncelleyin, gerçek zamanlı olarak Google Sheets'e yansısın
+
+---
+
+## Teknoloji Yığını
+
+| Katman | Teknoloji |
 |---|---|
-| Frontend | Vanilla HTML, CSS, JavaScript |
-| Hosting | GitHub Pages |
-| Automation | n8n (Cloud) |
-| AI — Task Extraction | Google Gemini API |
-| AI — Voice Transcription | OpenAI Whisper API |
-| Database | Google Sheets + SheetDB |
-| Email | Gmail via n8n |
-| Calendar | Google Calendar via n8n |
-| Voice Interface | Telegram Bot |
+| Ön Yüz | Vanilla HTML, CSS, JavaScript |
+| Barındırma | GitHub Pages |
+| Otomasyon | n8n (Cloud) |
+| Yapay Zeka — Görev Çıkarımı | Google Gemini API |
+| Yapay Zeka — Ses Transkripsiyonu | OpenAI Whisper API |
+| Veritabanı | Google Sheets + SheetDB |
+| E-posta | n8n üzerinden Gmail |
+| Takvim | n8n üzerinden Google Takvim |
+| Sesli Arayüz | Telegram Bot |
 
 ---
 
-## Architecture
+## Mimari
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -53,7 +54,7 @@ Built with a fully static frontend (vanilla HTML/CSS/JS) hosted on GitHub Pages,
 │                  (index.html)                        │
 │                                                      │
 │  ┌─────────┐  ┌─────────┐  ┌──────────┐  ┌──────┐  │
-│  │Dashboard│  │ Submit  │  │  Tasks   │  │ More │  │
+│  │ Panel   │  │ Gönder  │  │ Görevler │  │Diğer │  │
 │  └────┬────┘  └────┬────┘  └────┬─────┘  └──────┘  │
 └───────┼────────────┼────────────┼───────────────────┘
         │            │            │
@@ -63,17 +64,17 @@ Built with a fully static frontend (vanilla HTML/CSS/JS) hosted on GitHub Pages,
 ┌───────────────────────────────────────────────────┐
 │                    n8n Cloud                       │
 │                                                   │
-│  Workflow 1          Workflow 2      Workflow 3   │
-│  Main Flow           Weekly Email   Telegram Bot  │
-│                                                   │
-│  Workflow 4                                       │
-│  Status Update                                    │
+│  İş Akışı 1         İş Akışı 2   İş Akışı 3      │
+│  Ana Akış           Haftalık     Telegram Bot     │
+│                     E-posta                       │
+│  İş Akışı 4                                       │
+│  Durum Güncelleme                                 │
 └───────┬───────────────────────────────────────────┘
         │
         ▼
 ┌───────────────────────────────┐
 │  Google Sheets (SheetDB)      │
-│  Google Calendar              │
+│  Google Takvim                │
 │  Gmail                        │
 │  Telegram                     │
 └───────────────────────────────┘
@@ -81,174 +82,174 @@ Built with a fully static frontend (vanilla HTML/CSS/JS) hosted on GitHub Pages,
 
 ---
 
-## n8n Workflows
+## n8n İş Akışları
 
-### Workflow 1 — Main Meeting Flow
+### İş Akışı 1 — Ana Toplantı Akışı
 
-The core workflow. Handles both the analysis phase and the confirmation phase via a single webhook, distinguished by an `action` field.
+Temel iş akışı. `action` alanıyla birbirinden ayrılan analiz ve onay aşamalarını tek bir webhook üzerinden yönetir.
 
-**Analysis phase** (`action: "analyze"`):
+**Analiz aşaması** (`action: "analyze"`):
 ```
 Webhook → Metin Temizle → IF (action == confirm?)
                                ↓ FALSE
                           Gemini Body Hazırla → HTTP Request (Gemini API)
                           → JSON Çözümle → Veri Hazırla
-                          → Respond to Webhook (returns extracted tasks to frontend)
+                          → Respond to Webhook (çıkarılan görevleri ön yüze döndürür)
 ```
 
-**Confirmation phase** (`action: "confirm"`):
+**Onay aşaması** (`action: "confirm"`):
 ```
 Webhook → Metin Temizle → IF (action == confirm?)
                                ↓ TRUE
-                          Confirm Hazırla → Sheets (append row)
-                                         → Email Template → IF Has Email → Gmail
-                                         → IF Has Deadline → Color Map → Calendar Event
-                                         → Get Follow Up Date → Calendar Event
+                          Confirm Hazırla → Sheets (satır ekle)
+                                         → E-posta Şablonu → IF E-posta Varsa → Gmail
+                                         → IF Son Tarih Varsa → Renk Haritası → Takvim Etkinliği
+                                         → Takip Tarihi Al → Takvim Etkinliği
                           → Respond to Webhook
 ```
 
-**Trigger:** POST webhook from frontend  
-**Inputs:** `meeting_title`, `meeting_notes`, `meeting_date`, `action`, `action_items`  
-**Outputs:** Gemini JSON (analyze) / Sheets + Gmail + Calendar (confirm)
+**Tetikleyici:** Ön yüzden POST webhook
+**Girdiler:** `meeting_title`, `meeting_notes`, `meeting_date`, `action`, `action_items`
+**Çıktılar:** Gemini JSON (analiz) / Sheets + Gmail + Takvim (onay)
 
 ---
 
-### Workflow 2 — Weekly Monday Email
+### İş Akışı 2 — Haftalık Pazartesi E-postası
 
-Runs automatically every Monday morning. Fetches all tasks from Google Sheets, summarizes completed and pending items, and sends a motivational digest email to the team.
+Her Pazartesi sabahı otomatik olarak çalışır. Google Sheets'teki tüm görevleri çeker, tamamlanan ve bekleyen maddeleri özetler ve ekibe motivasyonel bir özet e-postası gönderir.
 
 ```
-Cron (Every Monday) → HTTP Request (SheetDB — fetch all tasks)
-→ Code (summarize completed / pending / overdue)
-→ Gmail (send weekly digest to team)
+Cron (Her Pazartesi) → HTTP Request (SheetDB — tüm görevleri getir)
+→ Kod (tamamlanan / bekleyen / süresi geçmiş özetle)
+→ Gmail (haftalık özeti tüm ekibe gönder)
 ```
 
-**Trigger:** Cron schedule (Monday 09:00)  
-**Outputs:** Weekly summary email to all team members
+**Tetikleyici:** Cron zamanlaması (Pazartesi 09:00)
+**Çıktılar:** Tüm ekip üyelerine haftalık özet e-postası
 
 ---
 
-### Workflow 3 — Telegram Voice Note
+### İş Akışı 3 — Telegram Sesli Not
 
-Allows sending meeting notes as voice messages via Telegram instead of typing. Whisper AI transcribes the audio, then the same Gemini pipeline processes the text.
+Toplantı notlarını yazmak yerine Telegram üzerinden sesli mesaj olarak göndermeye olanak tanır. Whisper yapay zekası sesi metne çevirir, ardından aynı Gemini boru hattı metni işler.
 
 ```
-Telegram Trigger (voice message received)
-→ Download Audio File
-→ HTTP Request (OpenAI Whisper API — transcribe)
+Telegram Tetikleyici (sesli mesaj alındı)
+→ Ses Dosyasını İndir
+→ HTTP Request (OpenAI Whisper API — transkribe et)
 → Metin Temizle → Gemini Body Hazırla → HTTP Request (Gemini API)
 → JSON Çözümle → Veri Hazırla
-→ Telegram (send confirmation message back to user)
-→ [User replies "Evet" to confirm]
-→ Sheets + Gmail + Calendar
+→ Telegram (kullanıcıya onay mesajı gönder)
+→ [Kullanıcı onaylamak için "Evet" yazar]
+→ Sheets + Gmail + Takvim
 ```
 
-**Trigger:** Telegram bot voice message  
-**Outputs:** Transcription → task extraction → same as Workflow 1 confirmation
+**Tetikleyici:** Telegram bot sesli mesajı
+**Çıktılar:** Transkripsiyon → görev çıkarımı → İş Akışı 1 onayıyla aynı
 
 ---
 
-### Workflow 4 — Status Update
+### İş Akışı 4 — Durum Güncelleme
 
-Triggered when a user changes a task's status dropdown in the dashboard. Updates the corresponding row in Google Sheets in real time.
+Kullanıcı gösterge panelindeki görev durumu açılır menüsünü değiştirdiğinde tetiklenir. İlgili satırı Google Sheets'te gerçek zamanlı olarak günceller.
 
 ```
-Webhook (POST) → Google Sheets (Update Row by Görev column)
+Webhook (POST) → Google Sheets (Görev sütununa göre satırı güncelle)
 → Respond to Webhook ({"success": true})
 ```
 
-**Trigger:** POST webhook from frontend status dropdown  
-**Inputs:** `id` (task name), `status` (new status value)  
-**Outputs:** Updated `Durum` column in Google Sheets
+**Tetikleyici:** Ön yüz durum açılır menüsünden POST webhook
+**Girdiler:** `id` (görev adı), `status` (yeni durum değeri)
+**Çıktılar:** Google Sheets'teki `Durum` sütunu güncellenir
 
 ---
 
-## Google Sheets Structure
+## Google Sheets Yapısı
 
-The sheet must have a tab named `Log` with these exact column headers:
+Sayfada `Log` adında bir sekme bulunmalı ve aşağıdaki sütun başlıkları tam olarak bu şekilde yer almalıdır:
 
-| Column | Description |
+| Sütun | Açıklama |
 |---|---|
-| `ID` | Unique task identifier |
-| `Toplantı Adı` | Meeting name |
-| `Sorumlu` | Assigned person |
-| `Görev` | Task description |
-| `Deadline` | Due date (YYYY-MM-DD) |
-| `Öncelik` | Priority (Yüksek / Orta / Düşük) |
-| `Durum` | Status (Bekliyor / Devam Ediyor / Tamamlandı) |
-| `Tarih` | Meeting date |
-| `E-Posta` | Assignee email address |
+| `ID` | Benzersiz görev tanımlayıcısı |
+| `Toplantı Adı` | Toplantı adı |
+| `Sorumlu` | Atanan kişi |
+| `Görev` | Görev açıklaması |
+| `Deadline` | Son tarih (YYYY-AA-GG) |
+| `Öncelik` | Öncelik (Yüksek / Orta / Düşük) |
+| `Durum` | Durum (Bekliyor / Devam Ediyor / Tamamlandı) |
+| `Tarih` | Toplantı tarihi |
+| `E-Posta` | Sorumlu kişinin e-posta adresi |
 
 ---
 
-## Setup
+## Kurulum
 
-### Prerequisites
+### Ön Koşullar
 
-- n8n Cloud account (free tier works)
-- Google account (Sheets, Gmail, Calendar)
-- Gemini API key ([aistudio.google.com](https://aistudio.google.com))
-- SheetDB account ([sheetdb.io](https://sheetdb.io))
-- Telegram Bot (optional, for voice notes)
-- OpenAI API key (optional, for voice transcription)
+- n8n Cloud hesabı (ücretsiz plan yeterlidir)
+- Google hesabı (Sheets, Gmail, Takvim)
+- Gemini API anahtarı ([aistudio.google.com](https://aistudio.google.com))
+- SheetDB hesabı ([sheetdb.io](https://sheetdb.io))
+- Telegram Bot (isteğe bağlı, sesli notlar için)
+- OpenAI API anahtarı (isteğe bağlı, ses transkripsiyonu için)
 
-### Steps
+### Adımlar
 
 **1. Google Sheets**
-- Create a new Google Sheet
-- Add a tab named `Log`
-- Add the column headers listed above in row 1
-- Connect to SheetDB → copy the API URL
+- Yeni bir Google Sheets dosyası oluşturun
+- `Log` adında bir sekme ekleyin
+- 1. satıra yukarıda listelenen sütun başlıklarını ekleyin
+- SheetDB'ye bağlayın → API URL'sini kopyalayın
 
 **2. n8n**
-- Import the 4 workflow JSON files from the `/workflows` folder
-- Add your credentials (Google, Gemini, Gmail, Telegram)
-- Activate all workflows
-- Copy the webhook URLs from Workflow 1 and Workflow 4
+- `/workflows` klasöründeki 4 iş akışı JSON dosyasını içe aktarın
+- Kimlik bilgilerinizi ekleyin (Google, Gemini, Gmail, Telegram)
+- Tüm iş akışlarını etkinleştirin
+- İş Akışı 1 ve İş Akışı 4'teki webhook URL'lerini kopyalayın
 
-**3. Frontend Configuration**
-- Open `index.html`
-- Find the `CONFIG` object at the top and fill in your values:
+**3. Ön Yüz Yapılandırması**
+- `index.html` dosyasını açın
+- Üstteki `CONFIG` nesnesini bulun ve değerleri girin:
 
 ```javascript
 const CONFIG = {
-  webhookUrl:        'YOUR_N8N_WORKFLOW1_WEBHOOK_URL',
-  confirmWebhookUrl: 'YOUR_N8N_WORKFLOW1_WEBHOOK_URL', // same URL, action field differentiates
-  sheetDbUrl:        'YOUR_SHEETDB_API_URL',
-  updateWebhookUrl:  'YOUR_N8N_WORKFLOW4_WEBHOOK_URL',
-  voiceWebhookUrl:   'YOUR_N8N_WORKFLOW3_WEBHOOK_URL',
+  webhookUrl:        'N8N_IS_AKISI_1_WEBHOOK_URL',
+  confirmWebhookUrl: 'N8N_IS_AKISI_1_WEBHOOK_URL', // aynı URL, action alanı ayırt eder
+  sheetDbUrl:        'SHEETDB_API_URL',
+  updateWebhookUrl:  'N8N_IS_AKISI_4_WEBHOOK_URL',
+  voiceWebhookUrl:   'N8N_IS_AKISI_3_WEBHOOK_URL',
   refreshInterval:   30000,
 };
 ```
 
-**4. Deploy**
-- Push `index.html` to your GitHub repository
-- Enable GitHub Pages in repository Settings → Pages
-- Set source to main branch, root folder
+**4. Yayına Alma**
+- `index.html` dosyasını GitHub deponuza push edin
+- Depo Ayarları → Pages bölümünden GitHub Pages'i etkinleştirin
+- Kaynak olarak main dalını ve kök klasörü seçin
 
 ---
 
-## How It Works — User Flow
+## Nasıl Çalışır — Kullanıcı Akışı
 
 ```
-1. Open dashboard → meetmind-hackathon-takim11.github.io
-2. Click "Toplantı Ekle" or go to "Toplantı Gönder"
-3. Enter meeting name, date, and paste meeting notes
-4. Click "Gönder" — Gemini analyzes the notes
-5. Review extracted tasks in the approval panel
-6. Click "Onayla" — tasks saved to Sheets, emails sent, calendar events created
-7. Dashboard refreshes automatically — tasks appear in all views
+1. Gösterge panelini açın → meetmind-hackathon-takim11.github.io
+2. "Toplantı Ekle"ye tıklayın veya "Toplantı Gönder" sayfasına gidin
+3. Toplantı adını ve tarihini girin, toplantı notlarını yapıştırın
+4. "Gönder"e tıklayın — Gemini notları analiz eder
+5. Onay panelinde çıkarılan görevleri inceleyin
+6. "Onayla"ya tıklayın — görevler Sheets'e kaydedilir, e-postalar gönderilir, takvim etkinlikleri oluşturulur
+7. Gösterge paneli otomatik olarak yenilenir — görevler tüm görünümlerde belirir
 ```
 
-Alternatively, send a voice message to the Telegram bot — the rest of the flow is identical.
+Alternatif olarak, Telegram botuna sesli mesaj gönderin — geri kalan akış aynıdır.
 
 ---
 
-## Project Structure
+## Proje Yapısı
 
 ```
 /
-├── index.html          # Full frontend — dashboard, submit, tasks, calendar, notes, voice
+├── index.html          # Tam ön yüz — panel, gönder, görevler, takvim, notlar, ses
 ├── README.md
 └── workflows/
     ├── workflow1-main.json
@@ -259,8 +260,14 @@ Alternatively, send a voice message to the Telegram bot — the rest of the flow
 
 ---
 
-## Team
+## Ekip
 
-Built for Hackathon by **Takım 11**
+**Takım 11** tarafından Yapay Zeka ve Teknoloji Akademisi Low Code / No Code Hackathon için geliştirilmiştir.
+
 Kerziban Sicim | Özde Hava Sinecek | Enes Koyuncu | Göktuğ Kocatürk
+
 ---
+
+## Lisans
+
+MIT
