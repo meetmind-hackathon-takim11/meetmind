@@ -1170,7 +1170,18 @@ function fetchTasks() {
     return fetch(CONFIG.sheetDbUrl + '?sheet=Log')
       .then(function(res){ return res.json(); })
       .then(function(data){
-        state.tasks = Array.isArray(data) ? data : [];
+        state.tasks = Array.isArray(data) ? data.map(function(t) {
+  return {
+    ID:           t['ID']           || t['id']            || '',
+    Toplantı_Adı: t['Toplantı Adı'] || t['Toplantı_Adı']  || '',
+    Sorumlu:      t['Sorumlu']      || '',
+    Görev:        t['Görev']        || '',
+    Deadline:     t['Deadline']     || '',
+    Öncelik:      t['Öncelik']      || '',
+    Durum:        t['Durum']        || '',
+    Tarih:        t['Tarih']        || '',
+  };
+}) : [];
         state.lastRefresh = new Date();
         updateAllViews();
       })
@@ -1683,19 +1694,6 @@ function confirmTasks() {
     hideLoading();
     return fetchTasks();
   })
-  .then(function(data){
-  state.tasks = Array.isArray(data) ? data.map(function(t) {
-    return {
-      ID:           t['ID']           || t['id']            || '',
-      Toplantı_Adı: t['Toplantı Adı'] || t['Toplantı_Adı']  || '',
-      Sorumlu:      t['Sorumlu']      || '',
-      Görev:        t['Görev']        || '',
-      Deadline:     t['Deadline']     || '',
-      Öncelik:      t['Öncelik']      || '',
-      Durum:        t['Durum']        || '',
-      Tarih:        t['Tarih']        || '',
-    };
-  }) : [];
 }
 
 function editTasks() {
