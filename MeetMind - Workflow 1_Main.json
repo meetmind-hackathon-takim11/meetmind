@@ -293,7 +293,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyA5dhaocharyue5apCQUAeI26OBRiZQ3fA",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=[YOUR_API_KEY_HERE]",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ $json.gemini_body }}",
