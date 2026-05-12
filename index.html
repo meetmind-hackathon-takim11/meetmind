@@ -506,7 +506,7 @@ const CONFIG = {
   sheetId: '1VxDBeNJxg9EzcJfqVDcUwo19ez_mD7Vi8GWx1ZaMKBI',
 
   // Görev güncellemek için ayrı bir n8n webhook (opsiyonel)
-  updateWebhookUrl: 'YOUR_N8N_UPDATE_WEBHOOK_URL_HERE',
+  updateWebhookUrl: 'https://takim11.app.n8n.cloud/webhook/5dfea19a-2121-4bc7-b8e7-acaf4420bf5c',
 
   // Sesli not için n8n webhook — Workflow 3'ten alın
   voiceWebhookUrl: 'YOUR_N8N_VOICE_WEBHOOK_URL_HERE',
@@ -1771,7 +1771,7 @@ function renderTaskTable() {
         (late ? '⚠ ' : '') + formatDate(t.Deadline) +
       '</td>' +
       '<td>' +
-        '<select data-id="' + esc(String(t.ID)) + '" onchange="updateTaskStatus(this.dataset.id, this.value)"' +
+        '<select data-id="' + esc(String(t.Görev)) + '" onchange="updateTaskStatus(this.dataset.id, this.value)"' +
           ' style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surf);color:var(--ink-2);cursor:pointer">' +
           ['Bekliyor','Devam Ediyor','Tamamlandı'].map(function(s){
             return '<option' + (s === t.Durum ? ' selected' : '') + '>' + s + '</option>';
