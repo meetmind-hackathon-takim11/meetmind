@@ -1615,7 +1615,7 @@ function simulateAIResponse(title, notes, date) {
 
 function showAIPreview(data, meetingName) {
   state.pendingAIResult = data;
-  showApprovalPanel(data, meetingName);
+  showApprovalPanel(data, data.meeting_title || meetingName);
   document.getElementById('submit-info-card').style.display   = 'none';
   document.getElementById('ai-preview-section').style.display = 'block';
   setText('preview-meeting-name', meetingName);
