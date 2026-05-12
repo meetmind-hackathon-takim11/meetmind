@@ -12,7 +12,7 @@
 
 MeetMind, ham toplantı notlarını Google Gemini yapay zekası kullanarak yapılandırılmış görevlere dönüştüren bir toplantı verimliliği aracıdır. Görevler otomatik olarak Google Sheets'e senkronize edilir, Gmail üzerinden ekip üyelerine atanır ve Google Takvim'e işlenir — tek bir yapıştırma işlemiyle.
 
-GitHub Pages üzerinde barındırılan tam statik bir ön yüz (vanilla HTML/CSS/JS) ile oluşturulmuştur; arka uçta n8n otomasyon iş akışları çalışmaktadır.
+GitHub Pages üzerinde barındırılan tam statik bir frontend (vanilla HTML/CSS/JS) ile oluşturulmuştur; backendde n8n otomasyon iş akışları çalışmaktadır.
 
 ---
 
@@ -20,7 +20,7 @@ GitHub Pages üzerinde barındırılan tam statik bir ön yüz (vanilla HTML/CSS
 
 - **Yapay Zeka ile Görev Çıkarımı** — Toplantı notlarını yapıştırın, Gemini görevleri, sorumlu kişileri, son tarihleri ve öncelikleri otomatik olarak çıkarır
 - **İnsan Onaylı Akış** — Herhangi bir şey kaydedilmeden veya gönderilmeden önce yapay zekanın çıkardığı görevleri inceleyin ve onaylayın
-- **Canlı Gösterge Paneli** — Google Sheets'ten senkronize edilen KPI kartları, risk ölçeri, duygu durum analizi ve kişi dağılımı
+- **Canlı Dashboard** — Google Sheets'ten senkronize edilen KPI kartları, risk ölçeri, duygu durum analizi ve kişi dağılımı
 - **Görev Yönetimi** — Görev durumlarını doğrudan gösterge panelinden filtreleyin, sıralayın ve güncelleyin
 - **Takvim Görünümü** — Etkileşimli aylık takvim ile son tarih takibi
 - **Toplantı Arşivi** — Geçmiş toplantılara ve ilgili görevlere göz atın
@@ -30,17 +30,17 @@ GitHub Pages üzerinde barındırılan tam statik bir ön yüz (vanilla HTML/CSS
 
 ---
 
-## Teknoloji Yığını
+## Tech Stack
 
 | Katman | Teknoloji |
 |---|---|
-| Ön Yüz | Vanilla HTML, CSS, JavaScript |
-| Barındırma | GitHub Pages |
+| Frontend | Vanilla HTML, CSS, JavaScript |
+| Hosting | GitHub Pages |
 | Otomasyon | n8n (Cloud) |
 | Yapay Zeka — Görev Çıkarımı | Google Gemini API |
 | Yapay Zeka — Ses Transkripsiyonu | OpenAI Whisper API |
 | Veritabanı | Google Sheets + SheetDB |
-| E-posta | n8n üzerinden Gmail |
+| Email | n8n üzerinden Gmail |
 | Takvim | n8n üzerinden Google Takvim |
 | Sesli Arayüz | Telegram Bot |
 
@@ -116,7 +116,7 @@ Webhook → Metin Temizle → IF (action == confirm?)
 
 ### İş Akışı 2 — Haftalık Pazartesi E-postası
 
-Her Pazartesi sabahı otomatik olarak çalışır. Google Sheets'teki tüm görevleri çeker, tamamlanan ve bekleyen maddeleri özetler ve ekibe motivasyonel bir özet e-postası gönderir.
+Her Pazartesi sabahı otomatik olarak çalışır. Google Sheets'teki tüm görevleri çeker, tamamlanan ve bekleyen maddeleri Gemini AI ile özetler ve ekibe motivasyonel bir özet e-postası gönderir.
 
 ```
 Cron (Her Pazartesi) → HTTP Request (SheetDB — tüm görevleri getir)
@@ -124,7 +124,7 @@ Cron (Her Pazartesi) → HTTP Request (SheetDB — tüm görevleri getir)
 → Gmail (haftalık özeti tüm ekibe gönder)
 ```
 
-**Tetikleyici:** Cron zamanlaması (Pazartesi 09:00)
+**Tetikleyici:** Cron zamanlaması (Pazartesi 08:30)
 **Çıktılar:** Tüm ekip üyelerine haftalık özet e-postası
 
 ---
@@ -170,7 +170,6 @@ Sayfada `Log` adında bir sekme bulunmalı ve aşağıdaki sütun başlıkları 
 
 | Sütun | Açıklama |
 |---|---|
-| `ID` | Benzersiz görev tanımlayıcısı |
 | `Toplantı Adı` | Toplantı adı |
 | `Sorumlu` | Atanan kişi |
 | `Görev` | Görev açıklaması |
@@ -223,8 +222,8 @@ const CONFIG = {
 ```
 
 **4. Yayına Alma**
-- `index.html` dosyasını GitHub deponuza push edin
-- Depo Ayarları → Pages bölümünden GitHub Pages'i etkinleştirin
+- `index.html` dosyasını GitHub reponuza push edin
+- Repo Ayarları → Pages bölümünden GitHub Pages'i etkinleştirin
 - Kaynak olarak main dalını ve kök klasörü seçin
 
 ---
@@ -232,7 +231,7 @@ const CONFIG = {
 ## Nasıl Çalışır — Kullanıcı Akışı
 
 ```
-1. Gösterge panelini açın → meetmind-hackathon-takim11.github.io
+1. Dashboardu açın → meetmind-hackathon-takim11.github.io
 2. "Toplantı Ekle"ye tıklayın veya "Toplantı Gönder" sayfasına gidin
 3. Toplantı adını ve tarihini girin, toplantı notlarını yapıştırın
 4. "Gönder"e tıklayın — Gemini notları analiz eder
@@ -268,6 +267,3 @@ Kerziban Sicim | Özde Hava Sinecek | Enes Koyuncu | Göktuğ Kocatürk
 
 ---
 
-## Lisans
-
-MIT
