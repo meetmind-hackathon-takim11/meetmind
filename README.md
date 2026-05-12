@@ -2,7 +2,7 @@
 
 > Toplantı notlarını otomatik olarak takip edilen, atanan ve iletilen eyleme dönüştürülebilir görevlere dönüştürün.
 
-**Canlı Demo:** [meetmind-hackathon-takim11.github.io](https://meetmind-hackathon-takim11.github.io)
+**Canlı Demo:** https://meetmind-hackathon-takim11.github.io/meetmind/
 
 **Tanıtım Videosu:** [YouTube'da İzle](#) *(Bağlantı yakında eklenecek)*
 
