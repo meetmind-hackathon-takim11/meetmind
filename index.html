@@ -1463,7 +1463,7 @@ function approveAll() {
   showToast('Görevler onaylandı — e-postalar gönderiliyor... ✓', 'check');
   if (CONFIG.webhookUrl && CONFIG.webhookUrl.indexOf('YOUR_') === -1) {
     // FIX 3: Avoid double-slash when webhookUrl already has a trailing slash
-    var confirmUrl = CONFIG.webhookUrl.replace(/\/$/, '') + '/confirm';
+    var confirmUrl = CONFIG.webhookUrl;
     fetch(confirmUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
