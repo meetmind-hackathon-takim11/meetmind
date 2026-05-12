@@ -1618,7 +1618,7 @@ function showAIPreview(data, meetingName) {
   showApprovalPanel(data, data.meeting_title || meetingName);
   document.getElementById('submit-info-card').style.display   = 'none';
   document.getElementById('ai-preview-section').style.display = 'block';
-  setText('preview-meeting-name', meetingName);
+  setText('preview-meeting-name', data.meeting_title || meetingName);
 
   var items = data.action_items || [];
   var today = new Date().toISOString().split('T')[0];
@@ -1683,10 +1683,19 @@ function confirmTasks() {
     hideLoading();
     return fetchTasks();
   })
-  .then(function() {
-    resetSubmitForm();
-    showToast('Görevler kaydedildi, e-postalar gönderildi ✓', 'check');
-  });
+  .then(function(data){
+  state.tasks = Array.isArray(data) ? data.map(function(t) {
+    return {
+      ID:           t['ID']           || t['id']            || '',
+      Toplantı_Adı: t['Toplantı Adı'] || t['Toplantı_Adı']  || '',
+      Sorumlu:      t['Sorumlu']      || '',
+      Görev:        t['Görev']        || '',
+      Deadline:     t['Deadline']     || '',
+      Öncelik:      t['Öncelik']      || '',
+      Durum:        t['Durum']        || '',
+      Tarih:        t['Tarih']        || '',
+    };
+  }) : [];
 }
 
 function editTasks() {
