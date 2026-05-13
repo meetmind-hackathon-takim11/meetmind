@@ -1,0 +1,422 @@
+{
+  "name": "MeetMind Workflow 2: Weekly Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "id": "ab4eddd8-4283-4c83-9231-a7969758e0c6",
+      "name": "Zamanlayıcı (Her Pazartesi 08:30)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -272,
+        176
+      ],
+      "notes": "Her Pazartesi sabah 08:30'da çalışır"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1VxDBeNJxg9EzcJfqVDcUwo19ez_mD7Vi8GWx1ZaMKBI",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Log",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "4c96a026-92f4-43c4-b5dd-4ecc46029e98",
+      "name": "Sheets: Tüm Görevleri Oku",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -48,
+        176
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lIPhj7Owl2zp4LlO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "notes": "⚠️ YOUR_GOOGLE_SHEET_ID_HERE →1VxDBeNJxg9EzcJfqVDcUwo19ez_mD7Vi8GWx1ZaMKBI\nCredential: MeetMind Sheets"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allRows = $input.all().map(i => i.json);\nconst now = new Date();\nconst sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);\nconst recent = allRows.filter(row => {\n  if (!row['Tarih']) return false;\n  const d = new Date(row['Tarih']);\n  return d >= sevenDaysAgo;\n});\nconst overdue = allRows.filter(row => {\n  if (!row['Deadline'] || row['Durum'] === 'Tamamlandı') return false;\n  const d = new Date(row['Deadline']);\n  return d < now;\n});\nconst total = allRows.length;\nconst done = allRows.filter(r => r['Durum'] === 'Tamamlandı').length;\nconst pending = allRows.filter(r => r['Durum'] === 'Bekliyor').length;\nconst inProgress = allRows.filter(r => r['Durum'] === 'Devam Ediyor').length;\nreturn [{\n  json: {\n    recent_tasks: recent,\n    overdue_tasks: overdue,\n    stats: { total, done, pending, inProgress, overdue: overdue.length },\n    week_start: sevenDaysAgo.toISOString().split('T')[0],\n    week_end: now.toISOString().split('T')[0],\n    has_data: allRows.length > 0\n  }\n}];"
+      },
+      "id": "e542c5e2-cf88-4840-a5d8-2b153bfb9d0c",
+      "name": "Son 7 Günü Filtrele",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        176
+      ],
+      "notes": "Son 7 günün görevlerini ve gecikenleri filtreler, istatistik üretir"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: `Sen bir proje yöneticisi asistanısın. Aşağıdaki haftalık istatistiklere göre takım liderine kısa, motive edici ve bilgilendirici bir haftalık özet e-postası yaz. SADECE e-posta gövdesini döndür, başka hiçbir şey yazma.\\n\\nHAFTA: ${$json.week_start} — ${$json.week_end}\\n\\nİSTATİSTİKLER:\\n- Toplam görev: ${$json.stats.total}\\n- Tamamlanan: ${$json.stats.done}\\n- Devam Eden: ${$json.stats.inProgress}\\n- Bekleyen: ${$json.stats.pending}\\n- Geciken: ${$json.stats.overdue}\\n\\nSON 7 GÜNÜN GÖREVLERİ:\\n${JSON.stringify($json.recent_tasks.slice(0, 10), null, 2)}\\n\\nGECİKEN GÖREVLER:\\n${JSON.stringify($json.overdue_tasks.slice(0, 5), null, 2)}\\n\\nE-posta Türkçe olsun. Başlık satırı: [MeetMind] Haftalık Özet — ${$json.week_start}` }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 800 } }) }}",
+        "options": {}
+      },
+      "id": "a5608f17-32a1-4c27-9b09-e1a43208af33",
+      "name": "Özet Üret (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        624,
+        64
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "aswpNYfZOATGX8tV",
+          "name": "Query Auth account"
+        }
+      },
+      "notes": "Gemini ile haftalık özet e-postası üretir"
+    },
+    {
+      "parameters": {
+        "jsCode": "const geminiResp = $input.first().json;\nconst emailBody = geminiResp?.candidates?.[0]?.content?.parts?.[0]?.text || 'Haftalık özet hazırlanamadı.';\nconst stats = $('Son 7 Günü Filtrele').first().json.stats;\nconst weekStart = $('Son 7 Günü Filtrele').first().json.week_start;\nconst weekEnd = $('Son 7 Günü Filtrele').first().json.week_end;\n\nconst htmlBody = `\n<html><body style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n<div style=\"background: #1a1a2e; color: white; padding: 20px; border-radius: 8px 8px 0 0;\">\n  <h1 style=\"margin: 0; font-size: 24px;\">🧠 MeetMind</h1>\n  <p style=\"margin: 5px 0 0 0; opacity: 0.8;\">Haftalık Özet: ${weekStart} — ${weekEnd}</p>\n</div>\n<div style=\"background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px;\">\n  <div style=\"display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;\">\n    <div style=\"background: #e3f2fd; padding: 12px 20px; border-radius: 8px; text-align: center;\">\n      <div style=\"font-size: 28px; font-weight: bold; color: #1565c0;\">${stats.total}</div>\n      <div style=\"font-size: 12px; color: #555;\">Toplam Görev</div>\n    </div>\n    <div style=\"background: #e8f5e9; padding: 12px 20px; border-radius: 8px; text-align: center;\">\n      <div style=\"font-size: 28px; font-weight: bold; color: #2e7d32;\">${stats.done}</div>\n      <div style=\"font-size: 12px; color: #555;\">Tamamlanan</div>\n    </div>\n    <div style=\"background: #fff3e0; padding: 12px 20px; border-radius: 8px; text-align: center;\">\n      <div style=\"font-size: 28px; font-weight: bold; color: #e65100;\">${stats.overdue}</div>\n      <div style=\"font-size: 12px; color: #555;\">Geciken</div>\n    </div>\n  </div>\n  <div style=\"white-space: pre-line; color: #333; line-height: 1.6;\">${emailBody}</div>\n</div>\n</body></html>`;\n\nreturn [{ json: { email_body: emailBody, html_body: htmlBody, week_start: weekStart, week_end: weekEnd, stats } }];"
+      },
+      "id": "5d20b253-0293-4f35-8015-377ccc6c0e91",
+      "name": "E-posta Formatla",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        176
+      ],
+      "notes": "HTML e-posta şablonu ile özeti biçimlendirir"
+    },
+    {
+      "parameters": {
+        "sendTo": "takim11hackathon@gmail.com ",
+        "subject": "=[MeetMind] Haftalık Özet — {{ $json.week_start }}",
+        "message": "={{ $json.html_body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "b66a76bf-8fe0-4ab0-85e1-074c2bb6d822",
+      "name": "Gmail: Özet Gönder",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1056,
+        176
+      ],
+      "webhookId": "4be05629-9bd4-4a3e-9f43-fbcdb0c3754a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "FsBjOdAxRFY1FOfM",
+          "name": "MeetMind  Gmail"
+        }
+      },
+      "notes": "⚠️ YOUR_EMAIL_ADDRESS_HERE → Takım liderinin e-posta adresi\nCredential: MeetMind Gmail"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1VxDBeNJxg9EzcJfqVDcUwo19ez_mD7Vi8GWx1ZaMKBI",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Notlar": "={{ $('Sheets: Tüm Görevleri Oku').item.json.Notlar }}",
+            "E-Posta": "={{ $('Sheets: Tüm Görevleri Oku').item.json['E-Posta'] }}",
+            "Durum": "={{ $('Sheets: Tüm Görevleri Oku').item.json.Durum }}",
+            "Öncelik": "={{ $('Sheets: Tüm Görevleri Oku').item.json['Öncelik'] }}",
+            "Deadline": "={{ $('Sheets: Tüm Görevleri Oku').item.json.Deadline }}",
+            "Görev": "={{ $('Sheets: Tüm Görevleri Oku').item.json['Görev'] }}",
+            "Sorumlu": "={{ $('Sheets: Tüm Görevleri Oku').item.json.Sorumlu }}",
+            "Toplantı Adı": "={{ $('Sheets: Tüm Görevleri Oku').item.json['Toplantı Adı'] }}",
+            "Tarih": "={{ $('Sheets: Tüm Görevleri Oku').item.json.Tarih }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Tarih",
+              "displayName": "Tarih",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Toplantı Adı",
+              "displayName": "Toplantı Adı",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sorumlu",
+              "displayName": "Sorumlu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Görev",
+              "displayName": "Görev",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Deadline",
+              "displayName": "Deadline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Öncelik",
+              "displayName": "Öncelik",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Durum",
+              "displayName": "Durum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "E-Posta",
+              "displayName": "E-Posta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notlar",
+              "displayName": "Notlar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "2de7410e-648c-4a03-80c9-8dc21eea83bb",
+      "name": "Sheets: Özet Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1280,
+        176
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "lIPhj7Owl2zp4LlO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "notes": "Haftalık özet gönderimini Sheets'e kaydeder"
+    },
+    {
+      "parameters": {},
+      "id": "7db46c20-ee60-4051-aa9b-0b79a3b5e9b7",
+      "name": "Veri Yok — Dur",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        608,
+        368
+      ],
+      "notes": "Görev yoksa akış burada durur, e-posta gönderilmez"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3349b6a7-c57f-403c-a95e-aeac65065858",
+              "leftValue": "={{ $json.has_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        176
+      ],
+      "id": "9d72b266-4349-4c53-b59c-c51ec302a502",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Zamanlayıcı (Her Pazartesi 08:30)": {
+      "main": [
+        [
+          {
+            "node": "Sheets: Tüm Görevleri Oku",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets: Tüm Görevleri Oku": {
+      "main": [
+        [
+          {
+            "node": "Son 7 Günü Filtrele",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Son 7 Günü Filtrele": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Özet Üret (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "E-posta Formatla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E-posta Formatla": {
+      "main": [
+        [
+          {
+            "node": "Gmail: Özet Gönder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail: Özet Gönder": {
+      "main": [
+        [
+          {
+            "node": "Sheets: Özet Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Özet Üret (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Veri Yok — Dur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bc7fba8d-6d5c-42a6-a905-e14ff662c875",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c9777f5c06799c9b8a4e21297ec3f6be067bd785ff228c5027665e0ab6499208"
+  },
+  "id": "f2x01kxMbxFnLsj8",
+  "tags": []
+}
