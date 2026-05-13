@@ -4,9 +4,7 @@
 
 **Canlı Dashboard:** https://meetmind-hackathon-takim11.github.io/meetmind/
 
-**Tanıtım Videosu:** [YouTube'da İzle](#) *(Bağlantı yakında eklenecek)*
-
-**Demo Videosu:** [YouTube'da İzle](#) *(Bağlantı yakında eklenecek)*
+**Tanıtım Videosu:** https://canva.link/takim11hackathonmeetmind
 
 ---
 
