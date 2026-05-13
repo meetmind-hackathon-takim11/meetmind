@@ -1,0 +1,427 @@
+{
+  "name": "MeetMind — Workflow 3: Sesli Not (Telegram Bot)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "54d8ace7-758f-4e88-b21a-9d04393e8229",
+      "name": "Telegram: Mesaj Dinle",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        128
+      ],
+      "webhookId": "meetmind-voice-bot",
+      "notes": "Telegram botundan gelen her mesajı dinler. Sesli mesaj veya metin olabilir."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gelen mesajın tipini tespit et\nconst msg = $input.item.json.message;\nconst chatId = msg.chat.id;\nconst userId = msg.from.id;\nconst firstName = msg.from.first_name || 'Kullanıcı';\n\nlet messageType = 'text';\nlet content = '';\nlet fileId = null;\n\nif (msg.voice) {\n  messageType = 'voice';\n  fileId = msg.voice.file_id;\n  content = '[Sesli mesaj alındı, transkripsiyon yapılıyor...]';\n} else if (msg.audio) {\n  messageType = 'audio';\n  fileId = msg.audio.file_id;\n  content = '[Ses dosyası alındı]';\n} else if (msg.text) {\n  messageType = 'text';\n  content = msg.text;\n}\n\nreturn [{ json: {\n  chatId,\n  userId,\n  firstName,\n  messageType,\n  content,\n  fileId,\n  isVoice: messageType === 'voice' || messageType === 'audio',\n  rawMessage: msg\n}}];"
+      },
+      "id": "110e3c6e-22f7-472e-9419-e25cef71953f",
+      "name": "Mesaj Tipini Tespit Et",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        128
+      ],
+      "notes": "Sesli mesaj mı, metin mi olduğunu ayırt eder. fileId sesli mesajlar için Telegram dosya ID'sidir."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isVoice }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "af610e00-3082-4d26-a233-1948a0e6bc4b",
+      "name": "Sesli Mesaj mı?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        128
+      ],
+      "notes": "Sesli mesaj ise transkripsiyon yapılır. Metin ise doğrudan Gemini'ye gönderilir."
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{ $credentials.telegramApi.accessToken }}/getFile",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "file_id",
+              "value": "={{ $json.fileId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "63e8ff46-e950-40f9-bb29-d8b06d06a6f0",
+      "name": "Telegram: Dosya URL Al",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        0,
+        0
+      ],
+      "notes": "Telegram'dan ses dosyasının indirme URL'sini alır. file_path alanı döner."
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/bot{{ $credentials.telegramApi.accessToken }}/{{ $json.result.file_path }}",
+        "options": {}
+      },
+      "id": "88c392e2-e7fa-4ab3-a94d-eb33294ac318",
+      "name": "Ses Dosyasını İndir",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        224,
+        0
+      ],
+      "notes": "Ses dosyasını binary olarak indirir. Sonraki node Whisper'a gönderecek."
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model",
+              "value": "whisper-1"
+            },
+            {
+              "name": "language",
+              "value": "tr"
+            },
+            {
+              "name": "response_format",
+              "value": "json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "11b9b7e3-6b69-4b64-b4fc-57f4feb3d0dd",
+      "name": "Whisper: Sesi Metne Çevir",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        448,
+        0
+      ],
+      "notes": "OpenAI Whisper API — sesi metne çevirir. Türkçe için language: tr ayarlanmış."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Whisper çıktısından transcript'i al\nconst transcript = $input.item.json.text || '';\nconst prev = $node['Mesaj Tipini Tespit Et'].json;\n\nreturn [{ json: {\n  ...prev,\n  content: transcript,\n  transcriptionDone: true\n}}];"
+      },
+      "id": "c0bb85dd-afb8-494d-aa1d-206d39b4ba40",
+      "name": "Transcript'i Birleştir",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "notes": "Whisper'dan gelen metni ana veri akışına ekler."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "=🎙️ Sesli mesajınız alındı!\n\n📝 *Transkripsiyon:*\n{{ $json.content.substring(0, 300) }}{{ $json.content.length > 300 ? '...' : '' }}\n\nGemini ile analiz ediliyor...",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "ed9d8d2f-c011-4193-bd78-03be55d8e6da",
+      "name": "Telegram: Transkripsiyon Onayla",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        880,
+        0
+      ],
+      "webhookId": "963d4688-a0f5-494c-b1d9-938e9bb5e537",
+      "notes": "Kullanıcıya 'sesinizi duydum, işliyorum' mesajı gönderir."
+    },
+    {
+      "parameters": {
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY_HERE",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "JSON",
+              "value": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"Sen bir toplantı asistanısın. Aşağıdaki toplantı notunu analiz et. SADECE JSON döndür. Başka hiçbir şey yazma. Markdown kullanma.\\n\\nTOPLANTI NOTU:\\n{{ $json.content }}\\n\\nFormat:\\n{\\n  \\\"meeting_title\\\": \\\"string\\\",\\n  \\\"meeting_date\\\": \\\"{{ $now.toISO().substring(0,10) }}\\\",\\n  \\\"action_items\\\": [\\n    {\\n      \\\"person\\\": \\\"Ad Soyad\\\",\\n      \\\"task\\\": \\\"Görev açıklaması\\\",\\n      \\\"deadline\\\": \\\"YYYY-MM-DD veya null\\\",\\n      \\\"priority\\\": \\\"Yüksek veya Orta veya Düşük\\\",\\n      \\\"notes\\\": \\\"ek not veya null\\\"\\n    }\\n  ],\\n  \\\"follow_up_date\\\": \\\"YYYY-MM-DD\\\",\\n  \\\"risk_score\\\": 0-100,\\n  \\\"mood_summary\\\": \\\"string\\\"\\n}\\n\\nKURALLAR:\\n- Deadline belirtilmemişse bugünden 7 gün sonrasını kullan\\n- Kişi adı yoksa 'Belirsiz' yaz\\n- risk_score: gecikme riski, aciliyet ve belirsizlik göz önünde bulundurularak 0-100 arası puan\\n- mood_summary: toplantının genel tonu hakkında 1 cümle Türkçe\"\n    }]\n  }],\n  \"generationConfig\": { \"temperature\": 0.1, \"maxOutputTokens\": 1200 }\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "194c30c4-1635-4af6-8f83-9a6144e40347",
+      "name": "Gemini: Görevi Çıkar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1104,
+        128
+      ],
+      "notes": "Transkriptten veya metin notundan görevleri çıkarır. Risk skoru da hesaplatılır."
+    },
+    {
+      "parameters": {
+        "jsCode": "const responseText = $input.item.json.candidates[0].content.parts[0].text;\nconst chatId = $node['Mesaj Tipini Tespit Et'].json.chatId;\nlet parsed;\ntry {\n  const cleaned = responseText.replace(/```json|```/g, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = { classification: 'parse_error', action_items: [] };\n}\nreturn [{ json: { ...parsed, chatId, parseError: !parsed.meeting_title } }];"
+      },
+      "id": "412356ae-74e4-49e1-9b97-cf7abb02c2aa",
+      "name": "JSON Çözümle",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        128
+      ],
+      "notes": "Gemini'nin metin yanıtını JSON objesine çevirir. Hata durumunda boş liste döner."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "=✅ *Görevler tespit edildi!*\n\n📋 *{{ $json.meeting_title || 'Toplantı' }}*\n\n{{ $json.action_items && $json.action_items.map((item, i) => `${i+1}. *${item.person || '?'}* → ${item.task}\\n   🗓 ${item.deadline || 'Tarih belirtilmedi'} | ⚡ ${item.priority || 'Orta'}`).join('\\n\\n') }}\n\n📊 Risk Skoru: *{{ $json.risk_score || '—' }}/100*\n\n━━━━━━━━━━━━━━━\nBu görevleri kaydetmemi ister misiniz?",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "f5fc7203-0cda-42b8-b29a-d6bd13f345a7",
+      "name": "Telegram: Onay İste (Human-in-the-Loop)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        128
+      ],
+      "webhookId": "67982c9c-7ea7-4da7-8704-b9bc6f4341b3",
+      "notes": "HUMAN-IN-THE-LOOP: Kullanıcıya görevleri gösterir ve Evet/Hayır butonu sunar. E-postalar bu onaydan ÖNCE gönderilmez."
+    },
+    {
+      "parameters": {
+        "updates": [
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "id": "01141cb0-51be-4e88-b110-f2c6200bdd95",
+      "name": "Telegram: Buton Yanıtı Dinle",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        384
+      ],
+      "webhookId": "d96da5b4-e52a-4403-bad8-b762f7856afd",
+      "notes": "Kullanıcının Evet/İptal butonuna basmasını dinler. Bu ayrı bir trigger'dır."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.callback_query.data }}",
+              "value2": "approve"
+            }
+          ]
+        }
+      },
+      "id": "fc131aca-9be9-46a5-af5f-ab43b6cb33ac",
+      "name": "Onaylandı mı?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        384
+      ],
+      "notes": "Kullanıcı 'Evet' dediyse Sheets + Gmail + Calendar akışı devam eder."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram: Mesaj Dinle": {
+      "main": [
+        [
+          {
+            "node": "Mesaj Tipini Tespit Et",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mesaj Tipini Tespit Et": {
+      "main": [
+        [
+          {
+            "node": "Sesli Mesaj mı?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sesli Mesaj mı?": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Dosya URL Al",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gemini: Görevi Çıkar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: Dosya URL Al": {
+      "main": [
+        [
+          {
+            "node": "Ses Dosyasını İndir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ses Dosyasını İndir": {
+      "main": [
+        [
+          {
+            "node": "Whisper: Sesi Metne Çevir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Whisper: Sesi Metne Çevir": {
+      "main": [
+        [
+          {
+            "node": "Transcript'i Birleştir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcript'i Birleştir": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Transkripsiyon Onayla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: Transkripsiyon Onayla": {
+      "main": [
+        [
+          {
+            "node": "Gemini: Görevi Çıkar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini: Görevi Çıkar": {
+      "main": [
+        [
+          {
+            "node": "JSON Çözümle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON Çözümle": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Onay İste (Human-in-the-Loop)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: Buton Yanıtı Dinle": {
+      "main": [
+        [
+          {
+            "node": "Onaylandı mı?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "df571ee9-6b20-4df2-b941-8bf7305f9783",
+  "meta": {
+    "instanceId": "c9777f5c06799c9b8a4e21297ec3f6be067bd785ff228c5027665e0ab6499208"
+  },
+  "id": "TGhrXF0FJwktcgYS",
+  "tags": [
+    {
+      "updatedAt": "2026-05-10T19:08:55.532Z",
+      "createdAt": "2026-05-10T19:08:55.532Z",
+      "id": "Ca066HZNrfCWSdSI",
+      "name": "meetmind"
+    },
+    {
+      "updatedAt": "2026-05-10T19:08:55.559Z",
+      "createdAt": "2026-05-10T19:08:55.559Z",
+      "id": "VgQvtpZGfxbyYX7q",
+      "name": "human-in-the-loop"
+    },
+    {
+      "updatedAt": "2026-05-10T19:08:55.589Z",
+      "createdAt": "2026-05-10T19:08:55.589Z",
+      "id": "r7sjJXjwNTPC1gTZ",
+      "name": "voice"
+    }
+  ]
+}
