@@ -129,7 +129,7 @@ Cron (Her Pazartesi) → HTTP Request (SheetDB — tüm görevleri getir)
 
 ---
 
-### İş Akışı 3 — Telegram Sesli Not
+### İş Akışı 3 — Telegram Sesli Not (Geliştirme Aşamasında)
 
 Toplantı notlarını yazmak yerine Telegram üzerinden sesli mesaj olarak göndermeye olanak tanır. Whisper yapay zekası sesi metne çevirir, ardından aynı Gemini boru hattı metni işler.
 
